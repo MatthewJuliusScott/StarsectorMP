@@ -34,7 +34,6 @@ public class Network {
 
 	// This registers objects that are going to be sent over the network.
 	static public void register(EndPoint endPoint) {
-		Person person = new Person();
 		Kryo kryo = endPoint.getKryo();
 		kryo.register(Login.class);
 		kryo.register(RegistrationRequired.class);

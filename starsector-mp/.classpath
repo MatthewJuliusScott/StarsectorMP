@@ -12,11 +12,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry excluding="jars/*|src/*" kind="src" path="Starsector Multiplayer"/>
-	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="lib/commons-compiler-jdk.jar"/>
 	<classpathentry kind="lib" path="lib/commons-compiler.jar"/>
 	<classpathentry kind="lib" path="lib/fs.common_obf.jar"/>
@@ -26,7 +21,6 @@
 	<classpathentry kind="lib" path="lib/jogg-0.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/jorbis-0.0.15.jar"/>
 	<classpathentry kind="lib" path="lib/json.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl_util.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl.jar"/>
 	<classpathentry kind="lib" path="lib/starfarer_obf.jar"/>

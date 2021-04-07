@@ -2,55 +2,164 @@
 package com.dasmatarix.multiplayer;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.SelectorProvider;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.lazywizard.console.Console;
 
 import com.fs.starfarer.api.EveryFrameScript;
-import com.fs.starfarer.api.Global;
 
 public class MultiplayerServerScript implements EveryFrameScript {
 
-	private Selector			selector;
-
-	private ServerSocketChannel	serverSocketChannel;
-
-	private long				lastRun	= System.currentTimeMillis();
-
-	public static void main(String[] args)
-	        throws IOException, InterruptedException {
-		MultiplayerServerScript server = new MultiplayerServerScript();
-		while (true) {
-			server.advance(1);
+	public static void main(String[] args) {
+		try {
+			EchoWorker worker = new EchoWorker();
+			new Thread(worker).start();
+			MultiplayerServerScript server = new MultiplayerServerScript(
+			        InetAddress.getLocalHost(), 7777, worker);
+			while (true) {
+				server.advance(1);
+			}
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
 		}
 	}
 
-	public MultiplayerServerScript() throws IOException {
-		// Selector: multiplexor of SelectableChannel objects
-		selector = Selector.open(); // selector is open here
+	// The host:port combination to listen on
+	private InetAddress			hostAddress;
 
-		// ServerSocketChannel: selectable channel for stream-oriented listening
-		// sockets
-		serverSocketChannel = ServerSocketChannel.open();
-		InetSocketAddress host = new InetSocketAddress("localhost", 7777);
+	private int					port;
 
-		// Binds the channel's socket to a local address and configures the
-		// socket to listen for connections
-		serverSocketChannel.bind(host);
+	// The channel on which we'll accept connections
+	private ServerSocketChannel	serverChannel;
 
-		// Adjusts this channel's blocking mode.
-		serverSocketChannel.configureBlocking(false);
+	// The selector we'll be monitoring
+	private Selector			selector;
 
-		int ops = serverSocketChannel.validOps();
-		SelectionKey selectKey = serverSocketChannel.register(selector, ops,
-		        null);
+	// The buffer into which we'll read data when it's available
+	private ByteBuffer			readBuffer		= ByteBuffer.allocate(8192);
+
+	private EchoWorker			worker;
+
+	// A list of PendingChange instances
+	private List				pendingChanges	= new LinkedList();
+
+	// Maps a SocketChannel to a list of ByteBuffer instances
+	private Map					pendingData		= new HashMap();
+
+	// the last time this script processed
+	private long				lastRun			= System.currentTimeMillis();
+
+	public MultiplayerServerScript(InetAddress hostAddress, int port,
+	        EchoWorker worker) throws IOException {
+		this.hostAddress = hostAddress;
+		this.port = port;
+		this.selector = this.initSelector();
+		this.worker = worker;
+	}
+
+	private void accept(SelectionKey key) throws IOException {
+		// For an accept to be pending the channel must be a server socket
+		// channel.
+		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key
+		        .channel();
+
+		// Accept the connection and make it non-blocking
+		SocketChannel socketChannel = serverSocketChannel.accept();
+		Socket socket = socketChannel.socket();
+		socketChannel.configureBlocking(false);
+
+		// Register the new SocketChannel with our Selector, indicating
+		// we'd like to be notified when there's data waiting to be read
+		socketChannel.register(this.selector, SelectionKey.OP_READ);
+	}
+
+	@Override
+	public void advance(float amount) {
+		if (System.currentTimeMillis() - lastRun > 1000L) {
+			try {
+				
+				// Test
+				String message = "" + System.currentTimeMillis();
+				for (SelectionKey key : selector.selectedKeys()) {
+					send((SocketChannel)key.channel(), message.getBytes());
+				}
+				
+				// Process any pending changes
+				synchronized (this.pendingChanges) {
+					Iterator changes = this.pendingChanges.iterator();
+					while (changes.hasNext()) {
+						ChangeRequest change = (ChangeRequest) changes.next();
+						switch (change.type) {
+							case ChangeRequest.CHANGEOPS :
+								SelectionKey key = change.socket
+								        .keyFor(this.selector);
+								key.interestOps(change.ops);
+						}
+					}
+					this.pendingChanges.clear();
+				}
+
+				// Wait for an event one of the registered channels
+				this.selector.select();
+
+				// Iterate over the set of keys for which events are available
+				Iterator selectedKeys = this.selector.selectedKeys().iterator();
+				while (selectedKeys.hasNext()) {
+					SelectionKey key = (SelectionKey) selectedKeys.next();
+					selectedKeys.remove();
+
+					if (!key.isValid()) {
+						continue;
+					}
+
+					// Check what event is available and deal with it
+					if (key.isAcceptable()) {
+						this.accept(key);
+					} else if (key.isReadable()) {
+						this.read(key);
+					} else if (key.isWritable()) {
+						this.write(key);
+					}
+				}
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+			lastRun = System.currentTimeMillis();
+		}
+	}
+
+	private Selector initSelector() throws IOException {
+		// Create a new selector
+		Selector socketSelector = SelectorProvider.provider().openSelector();
+
+		// Create a new non-blocking server socket channel
+		this.serverChannel = ServerSocketChannel.open();
+		serverChannel.configureBlocking(false);
+
+		// Bind the server socket to the specified address and port
+		InetSocketAddress isa = new InetSocketAddress(this.hostAddress,
+		        this.port);
+		serverChannel.socket().bind(isa);
+
+		// Register the server socket channel, indicating an interest in
+		// accepting new connections
+		serverChannel.register(socketSelector, SelectionKey.OP_ACCEPT);
+
+		return socketSelector;
 	}
 
 	@Override
@@ -58,70 +167,87 @@ public class MultiplayerServerScript implements EveryFrameScript {
 		return false;
 	}
 
+	private void read(SelectionKey key) throws IOException {
+		SocketChannel socketChannel = (SocketChannel) key.channel();
+
+		// Clear out our read buffer so it's ready for new data
+		this.readBuffer.clear();
+
+		// Attempt to read off the channel
+		int numRead;
+		try {
+			numRead = socketChannel.read(this.readBuffer);
+		} catch (IOException e) {
+			// The remote forcibly closed the connection, cancel
+			// the selection key and close the channel.
+			key.cancel();
+			socketChannel.close();
+			return;
+		}
+
+		if (numRead == -1) {
+			// Remote entity shut the socket down cleanly. Do the
+			// same from our end and cancel the channel.
+			key.channel().close();
+			key.cancel();
+			return;
+		}
+
+		// Hand the data off to our worker thread
+		this.worker.processData(this, socketChannel, this.readBuffer.array(),
+		        numRead);
+	}
+
 	@Override
 	public boolean runWhilePaused() {
 		return true;
 	}
 
-	@Override
-	public void advance(float amount) {
-		try {
-			if (System.currentTimeMillis() - lastRun > 1000L) {
-				Console.showMessage(
-				        "I'm a server and i'm waiting for new connection and buffer select...");
-				// Selects a set of keys whose corresponding channels are ready
-				// for
-				// I/O operations
-				selector.select();
+	public void send(SocketChannel socket, byte[] data) {
+		synchronized (this.pendingChanges) {
+			// Indicate we want the interest ops set changed
+			this.pendingChanges.add(new ChangeRequest(socket,
+			        ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
 
-				// token representing the registration of a SelectableChannel
-				// with a
-				// Selector
-				Set<SelectionKey> keys = selector.selectedKeys();
-				Iterator<SelectionKey> iterator = keys.iterator();
-
-				while (iterator.hasNext()) {
-					SelectionKey key = iterator.next();
-
-					// Tests whether this key's channel is ready to accept a new
-					// socket connection
-					if (key.isAcceptable()) {
-						SocketChannel client = serverSocketChannel.accept();
-
-						// Adjusts this channel's blocking mode to false
-						client.configureBlocking(false);
-
-						// Operation-set bit for read operations
-						client.register(selector, SelectionKey.OP_READ);
-						Console.showMessage("Connection Accepted: "
-						        + client.getLocalAddress() + "\n");
-
-						// Tests whether this key's channel is ready for reading
-					} else if (key.isReadable()) {
-
-						SocketChannel client = (SocketChannel) key.channel();
-						ByteBuffer buffer = ByteBuffer.allocate(256);
-						client.read(buffer);
-						String result = new String(buffer.array()).trim();
-
-						Console.showMessage("Message received: " + result);
-						Global.getSector().getCampaignUI()
-						        .addMessage("Message received: " + result);
-
-						if (result.equals("Close")) {
-							client.close();
-							Console.showMessage(
-							        "Closing connection to client.");
-							Console.showMessage(
-							        "Server will keep running. Try running client again to establish a new connection.");
-						}
-					}
-					iterator.remove();
+			// And queue the data we want written
+			synchronized (this.pendingData) {
+				List queue = (List) this.pendingData.get(socket);
+				if (queue == null) {
+					queue = new ArrayList();
+					this.pendingData.put(socket, queue);
 				}
-				lastRun = System.currentTimeMillis();
+				queue.add(ByteBuffer.wrap(data));
 			}
-		} catch (Exception e) {
-			Console.showMessage(e.getMessage());
+		}
+
+		// Finally, wake up our selecting thread so it can make the required
+		// changes
+		this.selector.wakeup();
+	}
+
+	private void write(SelectionKey key) throws IOException {
+		SocketChannel socketChannel = (SocketChannel) key.channel();
+
+		synchronized (this.pendingData) {
+			List queue = (List) this.pendingData.get(socketChannel);
+
+			// Write until there's not more data ...
+			while (!queue.isEmpty()) {
+				ByteBuffer buf = (ByteBuffer) queue.get(0);
+				socketChannel.write(buf);
+				if (buf.remaining() > 0) {
+					// ... or the socket's buffer fills up
+					break;
+				}
+				queue.remove(0);
+			}
+
+			if (queue.isEmpty()) {
+				// We wrote away all data, so we're no longer interested
+				// in writing on this socket. Switch back to waiting for
+				// data.
+				key.interestOps(SelectionKey.OP_READ);
+			}
 		}
 	}
 }

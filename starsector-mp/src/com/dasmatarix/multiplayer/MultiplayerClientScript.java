@@ -142,6 +142,7 @@ public class MultiplayerClientScript implements EveryFrameScript {
 			byte[] item = items.next();
 			items.remove();
 			channel.write(ByteBuffer.wrap(item));
+			Console.showMessage("Sending message: " + new String(item).trim());
 		}
 		channel.register(selector, SelectionKey.OP_READ);
 	}

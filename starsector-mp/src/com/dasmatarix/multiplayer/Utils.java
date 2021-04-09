@@ -2,28 +2,11 @@
 package com.dasmatarix.multiplayer;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import javax.xml.stream.XMLStreamException;
-
-import com.fs.starfarer.campaign.fleet.CargoData;
-import com.fs.starfarer.launcher.Object;
-import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import com.thoughtworks.xstream.io.StreamException;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
-import com.thoughtworks.xstream.io.xml.StaxWriter;
-import com.thoughtworks.xstream.mapper.MapperWrapper;
+import org.springframework.util.FastByteArrayOutputStream;
 
 /**
  * The Class Utils.
@@ -87,7 +70,7 @@ public class Utils {
 	 */
 	public static byte[] gzipCompress(byte[] uncompressedData) {
 		byte[] result = new byte[]{};
-		try (ByteArrayOutputStream bos = new ByteArrayOutputStream(
+		try (FastByteArrayOutputStream bos = new FastByteArrayOutputStream(
 		        uncompressedData.length);
 		        GZIPOutputStream gzipOS = new GZIPOutputStream(bos)) {
 			gzipOS.write(uncompressedData);
@@ -110,7 +93,7 @@ public class Utils {
 		byte[] result = new byte[]{};
 		try (ByteArrayInputStream bis = new ByteArrayInputStream(
 		        compressedData);
-		        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				FastByteArrayOutputStream bos = new FastByteArrayOutputStream();
 		        GZIPInputStream gzipIS = new GZIPInputStream(bis)) {
 			byte[] buffer = new byte[1024];
 			int len;

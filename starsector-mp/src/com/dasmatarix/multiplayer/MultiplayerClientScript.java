@@ -47,10 +47,7 @@ public class MultiplayerClientScript implements EveryFrameScript {
 
 	/** The channel. */
 	SocketChannel				channel;
-
-	/** The x stream. */
-	private XStream				xStream			= Serializer.createXStream();
-
+	
 	/**
 	 * The main method.
 	 *

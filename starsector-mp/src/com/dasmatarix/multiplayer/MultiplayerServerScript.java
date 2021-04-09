@@ -48,10 +48,6 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	private long								lastRun			= System
 	        .currentTimeMillis();
 
-	/** The x stream. */
-	private XStream								xStream			= Serializer
-	        .createXStream();
-
 	/**
 	 * The main method.
 	 *

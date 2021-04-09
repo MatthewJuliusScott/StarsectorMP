@@ -36,12 +36,6 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	/** The Constant CYCLE_MILLIS. */
 	private static final long	CYCLE_MILLIS	= 1000L;
 
-	/** The host. */
-	private String				host			= "localhost";
-
-	/** The port. */
-	private int					port			= 7777;
-
 	/** The pending data. */
 	List<byte[]>				pendingData		= new ArrayList<byte[]>();
 
@@ -64,7 +58,7 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	 * @throws Exception the exception
 	 */
 	public static void main(String[] args) throws Exception {
-		MultiplayerClientScript client = new MultiplayerClientScript();
+		MultiplayerClientScript client = new MultiplayerClientScript("localhost", 7777);
 		while (true) {
 			client.advance(1);
 		}
@@ -75,7 +69,7 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public MultiplayerClientScript() throws IOException {
+	public MultiplayerClientScript(String host, int port) throws IOException {
 		Console.showMessage("Connecting to Server on port " + port + "...");
 		open(host, port);
 	}

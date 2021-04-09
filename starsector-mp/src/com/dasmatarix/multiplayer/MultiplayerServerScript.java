@@ -59,7 +59,7 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	 * @throws Exception the exception
 	 */
 	public static void main(String[] args) throws Exception {
-		MultiplayerServerScript server = new MultiplayerServerScript();
+		MultiplayerServerScript server = new MultiplayerServerScript(7777);
 		while (true) {
 			server.advance(1);
 		}
@@ -67,10 +67,11 @@ public class MultiplayerServerScript implements EveryFrameScript {
 
 	/**
 	 * Instantiates a new multiplayer server script.
+	 * @param port 
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public MultiplayerServerScript() throws IOException {
+	public MultiplayerServerScript(int port) throws IOException {
 
 		// Selector: multiplexor of SelectableChannel objects
 		selector = SelectorProvider.provider().openSelector();
@@ -78,7 +79,7 @@ public class MultiplayerServerScript implements EveryFrameScript {
 		// ServerSocketChannel: selectable channel for stream-oriented listening
 		// sockets
 		serverSocketChannel = ServerSocketChannel.open();
-		InetSocketAddress host = new InetSocketAddress("localhost", 7777);
+		InetSocketAddress host = new InetSocketAddress("localhost", port);
 
 		// Binds the channel's socket to a local address and configures the
 		// socket to listen for connections

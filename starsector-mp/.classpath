@@ -12,8 +12,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry excluding="jars/*|src/*" kind="src" path="Starsector Multiplayer"/>
-	<classpathentry kind="lib" path="lib/commons-compiler-jdk.jar"/>
 	<classpathentry kind="lib" path="lib/commons-compiler.jar"/>
+	<classpathentry kind="lib" path="lib/commons-compiler-jdk.jar"/>
 	<classpathentry kind="lib" path="lib/fs.common_obf.jar"/>
 	<classpathentry kind="lib" path="lib/fs.sound_obf.jar"/>
 	<classpathentry kind="lib" path="lib/janino.jar"/>
@@ -21,21 +21,18 @@
 	<classpathentry kind="lib" path="lib/jogg-0.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/jorbis-0.0.15.jar"/>
 	<classpathentry kind="lib" path="lib/json.jar"/>
-	<classpathentry kind="lib" path="lib/lwjgl_util.jar"/>
-	<classpathentry kind="lib" path="lib/lwjgl.jar"/>
-	<classpathentry kind="lib" path="lib/starfarer_obf.jar"/>
-	<classpathentry kind="lib" path="lib/starfarer.api.jar" sourcepath="lib/starfarer.api-sources.jar"/>
-	<classpathentry kind="lib" path="lib/xstream-1.4.10.jar"/>
-	<classpathentry kind="lib" path="lib/lw_Console.jar"/>
 	<classpathentry kind="lib" path="lib/Kotlin-Runtime.jar"/>
 	<classpathentry kind="lib" path="lib/LazyLib.jar"/>
+	<classpathentry kind="lib" path="lib/LazyLib-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/LazyLib-Kotlin.jar"/>
-	<classpathentry kind="lib" path="lib/starfarer.api-sources.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
-	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="lib" path="lib/lw_Console.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl_util.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl.jar"/>
+	<classpathentry kind="lib" path="lib/rt.jar"/>
+	<classpathentry kind="lib" path="lib/starfarer_obf.jar"/>
+	<classpathentry kind="lib" path="lib/starfarer.api.jar"/>
+	<classpathentry kind="lib" path="lib/starfarer.api-sources.jar"/>
+	<classpathentry kind="lib" path="lib/xstream-1.4.10.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

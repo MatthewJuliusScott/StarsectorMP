@@ -11,9 +11,19 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import org.lazywizard.console.Console;
+import org.lwjgl.util.vector.Vector2f;
 
 import com.fs.starfarer.api.EveryFrameScript;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.CargoAPI;
+import com.fs.starfarer.api.campaign.StarSystemAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.campaign.fleet.CampaignFleet;
+import com.fs.starfarer.campaign.fleet.CargoData;
+import com.thoughtworks.xstream.XStream;
 
 //http://rox-xmlrpc.sourceforge.net/niotut/
 //https://stackoverflow.com/questions/11745686/java-nio-client
@@ -23,6 +33,7 @@ import com.fs.starfarer.api.EveryFrameScript;
  */
 public class MultiplayerClientScript implements EveryFrameScript {
 
+	/** The Constant CYCLE_MILLIS. */
 	private static final long	CYCLE_MILLIS	= 1000L;
 
 	/** The host. */
@@ -43,15 +54,16 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	/** The channel. */
 	SocketChannel				channel;
 
+	/** The x stream. */
+	private XStream				xStream			= Serializer.createXStream();
+
 	/**
 	 * The main method.
 	 *
 	 * @param args the arguments
-	 * @throws IOException          Signals that an I/O exception has occurred.
-	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
 	 */
-	public static void main(String[] args)
-	        throws IOException, InterruptedException {
+	public static void main(String[] args) throws Exception {
 		MultiplayerClientScript client = new MultiplayerClientScript();
 		while (true) {
 			client.advance(1);
@@ -91,7 +103,8 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	/**
 	 * Open.
 	 *
-	 * @param timeout the timeout
+	 * @param host the host
+	 * @param port the port
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void open(String host, int port) throws IOException {
@@ -108,7 +121,25 @@ public class MultiplayerClientScript implements EveryFrameScript {
 		Console.showMessage("Connected.");
 		channel.configureBlocking(false);
 		selector = SelectorProvider.provider().openSelector();
+
+		// channel.register(selector, SelectionKey.OP_WRITE);
+		// TODO send session start messages
+
 		channel.register(selector, SelectionKey.OP_READ);
+	}
+
+	/**
+	 * Send player fleet.
+	 */
+	public void sendPlayerFleet() {
+		CampaignFleetAPI campaignFleet = Global.getSector().getPlayerFleet();
+
+		String id = campaignFleet.getId();
+		Vector2f location = campaignFleet.getLocation();
+		List<FleetMemberAPI> fleetMembers = campaignFleet
+		        .getMembersWithFightersCopy();
+
+		StarSystemAPI starSystem = campaignFleet.getStarSystem();
 	}
 
 	/**
@@ -132,7 +163,6 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	/**
 	 * Write binary data to the server.
 	 *
-	 * @param bytes the bytes
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void write() throws IOException {
@@ -142,7 +172,7 @@ public class MultiplayerClientScript implements EveryFrameScript {
 			byte[] item = items.next();
 			items.remove();
 			channel.write(ByteBuffer.wrap(item));
-			Console.showMessage("Sending message: " + new String(item).trim());
+			Console.showMessage("Sending " + item.length + " bytes.");
 		}
 		channel.register(selector, SelectionKey.OP_READ);
 	}
@@ -150,11 +180,17 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	/**
 	 * Send data to the server.
 	 *
-	 * @param bytes the bytes
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @param object the object
+	 * @param clazz  the clazz
+	 * @throws IOException            Signals that an I/O exception has
+	 *                                occurred.
+	 * @throws ClassNotFoundException the class not found exception
 	 */
-	public void send(byte[] bytes) throws IOException {
-		pendingData.add(Utils.createPacket(bytes));
+	public void send(Object object, @SuppressWarnings("rawtypes") Class clazz)
+	        throws IOException, ClassNotFoundException {
+		byte[] bytes = Serializer.serialize(object, clazz);
+		Console.showMessage("Creating message: " + object.toString());
+		pendingData.add(bytes);
 	}
 
 	/**
@@ -171,7 +207,19 @@ public class MultiplayerClientScript implements EveryFrameScript {
 					read();
 				}
 				if (channel.isConnected() && channel.isOpen()) {
-					send(("" + System.currentTimeMillis()).getBytes());
+
+					// TODO remove, just for testing for now
+					CargoAPI cargo;
+					if (Global.getSector() != null) {
+						cargo = Global.getSector().getPlayerFleet().getCargo();
+					} else {
+						cargo = new CargoData(true);
+						cargo.getCredits().add(12345F);
+					}
+
+					// TODO send messages
+					send(cargo, CargoData.class);
+					
 					write();
 				}
 
@@ -182,29 +230,44 @@ public class MultiplayerClientScript implements EveryFrameScript {
 			Console.showMessage(e);
 		}
 	}
-
+	
+	ByteBuffer header;
+	ByteBuffer inBuf;
+	
 	/**
 	 * Read data from the server.
 	 *
-	 * @param key the key
 	 * @return the list
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void read() throws IOException {
-		ByteBuffer header = ByteBuffer.allocate(Integer.SIZE / 8);
+		header = ByteBuffer.allocate((Integer.SIZE / 8) * 2);
 		int messageSize = 0;
+		int hashCode = 0;
 		try {
 			if (channel.read(header) > 0) {
 				header.rewind();
 				messageSize = header.getInt();
+				hashCode = header.getInt();
 			}
 			if (messageSize > 0) {
-				ByteBuffer inBuf = ByteBuffer.allocate(messageSize);
+				Console.showMessage("Message received, size: " + messageSize + " bytes.");
+				inBuf = ByteBuffer.allocate(messageSize);
 
-				// TODO this will become deal with actual messages
+				// TODO handle result
 				if (channel.read(inBuf) > 0) {
-					String result = new String(inBuf.array());
-					Console.showMessage("Message received: " + result);
+
+					// TODO extract out
+					byte[] bytes = Utils.gzipUncompress(inBuf.array());
+					String result = new String(bytes);
+					Console.showMessage("Message received, message: " + result);
+					
+					if (hashCode == CampaignFleet.class.getName().hashCode()) {
+						CampaignFleet campaignFleet = (CampaignFleet)Serializer.deserialize(bytes);
+					} else if (hashCode == CargoData.class.getName().hashCode()) {
+						CargoData cargoData = (CargoData)Serializer.deserialize(bytes);
+					}
+
 				} else {
 					// TODO did we get a bad message?
 				}

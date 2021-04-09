@@ -11,15 +11,19 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.HashMap;
 import java.util.Set;
 
 import org.lazywizard.console.Console;
 
 import com.fs.starfarer.api.EveryFrameScript;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.campaign.fleet.CampaignFleet;
+import com.fs.starfarer.campaign.fleet.CargoData;
+import com.thoughtworks.xstream.XStream;
 
 //http://rox-xmlrpc.sourceforge.net/niotut/
 //https://stackoverflow.com/questions/11745686/java-nio-client
@@ -27,7 +31,8 @@ import com.fs.starfarer.api.EveryFrameScript;
  * The Class MultiplayerServerScript.
  */
 public class MultiplayerServerScript implements EveryFrameScript {
-	
+
+	/** The Constant CYCLE_MILLIS. */
 	private static final long					CYCLE_MILLIS	= 1000L;
 
 	/** The selector. */
@@ -37,21 +42,23 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	private ServerSocketChannel					serverSocketChannel;
 
 	/** The data map. */
-	private Map<SocketChannel, List<byte[]>>	dataMap			= new HashMap<SocketChannel, List<byte[]>>();
+	private Map<SocketChannel, Queue<byte[]>>	dataMap			= new HashMap<SocketChannel, Queue<byte[]>>();
 
 	/** The last run. */
 	private long								lastRun			= System
 	        .currentTimeMillis();
 
+	/** The x stream. */
+	private XStream								xStream			= Serializer
+	        .createXStream();
+
 	/**
 	 * The main method.
 	 *
 	 * @param args the arguments
-	 * @throws IOException          Signals that an I/O exception has occurred.
-	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
 	 */
-	public static void main(String[] args)
-	        throws IOException, InterruptedException {
+	public static void main(String[] args) throws Exception {
 		MultiplayerServerScript server = new MultiplayerServerScript();
 		while (true) {
 			server.advance(1);
@@ -64,6 +71,7 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public MultiplayerServerScript() throws IOException {
+
 		// Selector: multiplexor of SelectableChannel objects
 		selector = SelectorProvider.provider().openSelector();
 
@@ -84,6 +92,8 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	}
 
 	/**
+	 * Checks if is done.
+	 *
 	 * @return true when the script is finished and can be cleaned up by the
 	 *         engine.
 	 */
@@ -93,6 +103,8 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	}
 
 	/**
+	 * Run while paused.
+	 *
 	 * @return whether advance() should be called while the campaign engine is
 	 *         paused.
 	 */
@@ -129,13 +141,28 @@ public class MultiplayerServerScript implements EveryFrameScript {
 					// Tests whether this key's channel is ready to accept a new
 					// socket connection
 					if (key.isAcceptable()) {
+
+						// TODO send session start messages
+
 						accept();
 						// Tests whether this key's channel is ready for reading
-					} else if (key.isReadable()) {
+					} else if (key.isReadable() && key.channel().isOpen()) {
 						read(key);
-					} else if (key.isWritable()) {
-						// TODO remove, just for testing for now
-						send(key, ("" + System.currentTimeMillis()).getBytes());
+					} else if (key.isWritable() && key.channel().isOpen()) {
+
+						// delete, this is a test
+						CargoData cargo;
+						if (Global.getSector() != null) {
+							cargo = (CargoData) Global.getSector()
+							        .getPlayerFleet().getCargo();
+						} else {
+							cargo = new CargoData(true);
+							cargo.getCredits().add(54321F);
+						}
+						
+						// TODO send messages
+						send(key, cargo, CargoData.class);
+
 						write(key);
 					}
 				}
@@ -148,42 +175,63 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	}
 
 	/**
-	 * Write data to a client 'key'
+	 * Write data to a client 'key'.
 	 *
 	 * @param key the key
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private void write(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
-		List<byte[]> pendingData = this.dataMap.get(channel);
-		if (pendingData != null) {
-			Iterator<byte[]> items = pendingData.iterator();
-			while (items.hasNext()) {
-				byte[] item = items.next();
-				items.remove();
-				channel.write(ByteBuffer.wrap(item));
-				Console.showMessage("Sending message: " + new String(item).trim());
+		LinkedList<byte[]> pendingData = (LinkedList<byte[]>) this.dataMap
+		        .get(channel);
+		try {
+			if (pendingData != null) {
+				Iterator<byte[]> items = pendingData.iterator();
+				while (items.hasNext()) {
+					byte[] item = items.next();
+					items.remove();
+					// TODO convert pendingData to a ByteBuffer so wrap doesn't
+					// have to be performed here
+					channel.write(ByteBuffer.wrap(item));
+					Console.showMessage("Sending " + item.length + " bytes.");
+				}
 			}
+		} catch (IOException e) {
+			// The remote forcibly closed the connection, cancel
+			// the selection key and close the channel.
+			Console.showMessage("Client disconnected.");
+			key.cancel();
+			channel.close();
+			return;
 		}
 		key.interestOps(SelectionKey.OP_READ);
 	}
 
 	/**
-	 * Queue data to send to a channel
+	 * Queue a message to send to a client.
 	 *
-	 * @param bytes the bytes
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @param key    the client key to send this message to
+	 * @param object the object
+	 * @param clazz  the clazz
+	 * @throws IOException            Signals that an I/O exception has
+	 *                                occurred.
+	 * @throws ClassNotFoundException the class not found exception
 	 */
-	public void send(SelectionKey key, byte[] bytes) throws IOException {
+	public void send(SelectionKey key, Object object,
+	        @SuppressWarnings("rawtypes") Class clazz)
+	        throws IOException, ClassNotFoundException {
+
+		byte[] bytes = Serializer.serialize(object, clazz);
 
 		try {
 			if (!(key.channel() instanceof ServerSocketChannel)) {
 				SocketChannel channel = (SocketChannel) key.channel();
-				List<byte[]> pendingData = this.dataMap.get(channel);
+				Queue<byte[]> pendingData = this.dataMap.get(channel);
 				if (pendingData == null) {
-					pendingData = new ArrayList<byte[]>();
+					pendingData = new LinkedList<byte[]>();
 				}
-				pendingData.add(Utils.createPacket(bytes));
+				Console.showMessage("Creating message: " + object.toString());
+				pendingData.add(bytes);
 				dataMap.put(channel, pendingData);
 			}
 		} catch (Exception e) {
@@ -201,25 +249,38 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	 */
 	private void read(SelectionKey key) throws IOException {
 
-		// TODO move the buffer out and reuse it, otherwise what is the
-		// point of
-		// a buffer!
 		SocketChannel channel = (SocketChannel) key.channel();
 
-		ByteBuffer header = ByteBuffer.allocate(Integer.SIZE / 8);
+		ByteBuffer header = ByteBuffer.allocate((Integer.SIZE / 8) * 2);
 		int messageSize = 0;
+		int hashCode = 0;
 		try {
 			if (channel.read(header) > 0) {
 				header.rewind();
 				messageSize = header.getInt();
+				hashCode = header.getInt();
 			}
 			if (messageSize > 0) {
+				Console.showMessage("Message received, size: " + messageSize + " bytes.");
 				ByteBuffer inBuf = ByteBuffer.allocate(messageSize);
 
-				// TODO this will become deal with actual messages
+				// TODO handle result
 				if (channel.read(inBuf) > 0) {
-					String result = new String(inBuf.array());
+
+					// TODO extract out
+					byte[] bytes = Utils.gzipUncompress(inBuf.array());
+					String result = new String(bytes);
 					Console.showMessage("Message received: " + result);
+
+					if (hashCode == CampaignFleet.class.getName().hashCode()) {
+						CampaignFleet campaignFleet = (CampaignFleet) Serializer
+						        .deserialize(bytes);
+					} else if (hashCode == CargoData.class.getName()
+					        .hashCode()) {
+						CargoData cargoData = (CargoData) Serializer
+						        .deserialize(bytes);
+					}
+
 				} else {
 					// TODO did we get a bad message?
 				}
@@ -245,7 +306,7 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	}
 
 	/**
-	 * Accept a connection
+	 * Accept a connection.
 	 *
 	 * @throws IOException            Signals that an I/O exception has
 	 *                                occurred.

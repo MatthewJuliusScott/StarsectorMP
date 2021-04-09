@@ -1,0 +1,27 @@
+apply plugin: 'java'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+sourceSets.main.java.srcDirs = ["src"]
+repositories { 
+    mavenCentral()
+	maven {
+		url "http://clojars.org/repo/"
+	}
+}
+dependencies {
+    implementation fileTree(dir: 'lib', include: ['*.jar'])
+	compile "kryonet:kryonet:2.21"
+	compile 'org.apache.commons:commons-lang3:3.12.0'
+}
+jar {
+    baseName = 'starsector-mp'
+}
+task copyJar(type: Copy) {
+    from jar // here it automatically reads jar file produced from jar task
+    into "D:/Program Files (x86)/Fractal Softworks/Starsector/mods/Starsector Multiplayer/jars"
+}
+task copyDependencies(type: Copy) {
+   from configurations.compile
+   into 'D:/Program Files (x86)/Fractal Softworks/Starsector/mods/Starsector Multiplayer/jars'
+}
+build.dependsOn copyJar,copyDependencies

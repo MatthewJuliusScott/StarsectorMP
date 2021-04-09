@@ -1,0 +1,10 @@
+com/dasmatarix/multiplayer/MultiplayerClientScript.java
+ com.dasmatarix.multiplayer.MultiplayerClientScript
+com/dasmatarix/multiplayer/Utils.java
+ com.dasmatarix.multiplayer.Utils
+com/dasmatarix/multiplayer/MultiplayerServerScript.java
+ com.dasmatarix.multiplayer.MultiplayerServerScript
+com/dasmatarix/multiplayer/Serializer.java
+ com.dasmatarix.multiplayer.Serializer
+com/dasmatarix/multiplayer/MultiplayerModPlugin.java
+ com.dasmatarix.multiplayer.MultiplayerModPlugin

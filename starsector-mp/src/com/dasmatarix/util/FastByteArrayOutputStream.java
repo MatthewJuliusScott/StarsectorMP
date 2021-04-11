@@ -73,7 +73,7 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * with the default initial capacity of 256 bytes.
 	 * @throws Exception 
 	 */
-	public FastByteArrayOutputStream() throws Exception {
+	public FastByteArrayOutputStream() throws IOException {
 		this(DEFAULT_BLOCK_SIZE);
 	}
 
@@ -83,8 +83,8 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * @param initialBlockSize the initial buffer size in bytes
 	 * @throws Exception 
 	 */
-	public FastByteArrayOutputStream(int initialBlockSize) throws Exception {
-		if (!(initialBlockSize > 0)) throw new Exception("Initial block size must be greater than 0");
+	public FastByteArrayOutputStream(int initialBlockSize) throws IOException {
+		if (!(initialBlockSize > 0)) throw new IOException("Initial block size must be greater than 0");
 		this.initialBlockSize = initialBlockSize;
 		this.nextBlockSize = initialBlockSize;
 	}
@@ -192,7 +192,7 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * @see #size()
 	 * @see #toByteArray()
 	 */
-	public byte[] toByteArrayUnsafe() throws Exception {
+	public byte[] toByteArrayUnsafe() throws IOException {
 		int totalSize = size();
 		if (totalSize == 0) {
 			return new byte[0];
@@ -211,7 +211,7 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * @see #size()
 	 * @see #toByteArrayUnsafe()
 	 */
-	public byte[] toByteArray() throws Exception {
+	public byte[] toByteArray() throws IOException {
 		byte[] bytesUnsafe = toByteArrayUnsafe();
 		return bytesUnsafe.clone();
 	}
@@ -266,8 +266,8 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * the actual size of the content stored in the buffer already
 	 * @see FastByteArrayOutputStream#size()
 	 */
-	public void resize(int targetCapacity) throws Exception {
-		if (!(targetCapacity >= size())) throw new Exception("New capacity must not be smaller than current size");
+	public void resize(int targetCapacity) throws IOException {
+		if (!(targetCapacity >= size())) throw new IOException("New capacity must not be smaller than current size");
 		if (this.buffers.peekFirst() == null) {
 			this.nextBlockSize = targetCapacity - size();
 		}

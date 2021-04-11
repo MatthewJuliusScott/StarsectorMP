@@ -9,11 +9,10 @@ import com.fs.starfarer.campaign.fleet.CargoData;
 import com.fs.starfarer.campaign.fleet.FleetData;
 
 /**
- * The Class CustomSerializer.
+ * The Class MessageSerializer.
  *
- * @param <T> the generic type
  */
-public abstract class CustomSerializer<T> {
+public class MessageSerializer {
 
 	/** The Constant HEADER_LENGTH. */
 	public static final int HEADER_LENGTH = 2 * (Integer.SIZE / 8);
@@ -56,6 +55,24 @@ public abstract class CustomSerializer<T> {
 		classRegister.put(CampaignFleet.class.getName().hashCode(),
 		        CampaignFleet.class);
 	}
+	
+	/**
+	 * The main method.
+	 *
+	 * @param args the arguments
+	 * @throws Exception the exception
+	 */
+	public static void main(String[] args) throws Exception {
+		MessageSerializer serializer = new MessageSerializer();
+		CargoData expected = new CargoData(true);
+		expected.getCredits().add(12345F);
+		byte[] bytes = serializer.serialize(expected, CargoData.class);
+		System.out.println("Serialized actual: " + Utils.bytesToHexString(bytes));
+		CargoData actual = (CargoData) serializer.deserialize(bytes, CargoData.class);
+		System.out.println(expected.getCredits().get() + " equals "
+		        + actual.getCredits().get() + ", "
+		        + (expected.getCredits().get() == actual.getCredits().get()));
+	}
 
 	/**
 	 * Deserialize.
@@ -64,7 +81,9 @@ public abstract class CustomSerializer<T> {
 	 * @param class1 the class 1
 	 * @return the object
 	 */
-	protected abstract Object deserialize(byte[] bytes, Class<Object> class1);
+	protected Object deserialize(byte[] bytes, Class clazz) {
+		return null;
+	}
 
 	/**
 	 * Serialize.
@@ -74,8 +93,13 @@ public abstract class CustomSerializer<T> {
 	 * @return the byte[]
 	 * @throws ClassNotFoundException the class not found exception
 	 */
-	protected abstract byte[] serialize(Object object, Class clazz)
-	        throws ClassNotFoundException;
+	protected byte[] serialize(Object object, Class clazz)
+	        throws SerializerNotFoundException {
+		
+		
+		
+		return null;
+	}
 
 	/**
 	 * Gets the header.

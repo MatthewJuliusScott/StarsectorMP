@@ -37,7 +37,7 @@ import com.fs.starfarer.campaign.fleet.FleetData;
 public class MultiplayerServerScript implements EveryFrameScript {
 
 	/** The serializer. */
-	XMLSerializer								serializer		= new XMLSerializer();
+	MessageSerializer							serializer		= new MessageSerializer();
 
 	/** The Constant CYCLE_MILLIS. */
 	private static final long					CYCLE_MILLIS	= 1000L;
@@ -217,7 +217,7 @@ public class MultiplayerServerScript implements EveryFrameScript {
 
 		byte[] bytes = new byte[header.length + body.length];
 
-		System.arraycopy(body, 0, bytes, CustomSerializer.HEADER_LENGTH,
+		System.arraycopy(body, 0, bytes, MessageSerializer.HEADER_LENGTH,
 		        body.length);
 		System.arraycopy(header, 0, bytes, 0, header.length);
 
@@ -264,7 +264,7 @@ public class MultiplayerServerScript implements EveryFrameScript {
 			}
 			if (messageSize > 0) {
 				Console.showMessage("Message received, size: "
-				        + (messageSize + CustomSerializer.HEADER_LENGTH)
+				        + (messageSize + MessageSerializer.HEADER_LENGTH)
 				        + " bytes.");
 
 				// if the message size is bigger than the heap size it will

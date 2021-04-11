@@ -13,11 +13,8 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'lib', include: ['*.jar'])
 	implementation "org.apache.commons:commons-lang3:3.8.1"
-	implementation group: 'com.esotericsoftware', name: 'kryo', version: '4.0.0'
-	// https://mvnrepository.com/artifact/io.protostuff/protostuff-runtime
-	implementation group: 'io.protostuff', name: 'protostuff-runtime', version: '1.7.2'
-	// https://mvnrepository.com/artifact/io.protostuff/protostuff-core
-	implementation group: 'io.protostuff', name: 'protostuff-core', version: '1.7.2'
+	// https://mvnrepository.com/artifact/org.msgpack/msgpack
+	compile group: 'org.msgpack', name: 'msgpack', version: '0.6.12'
 }
 jar {
     baseName = 'Starsector Multiplayer'

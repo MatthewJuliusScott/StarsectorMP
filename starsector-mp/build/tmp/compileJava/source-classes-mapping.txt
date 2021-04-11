@@ -1,26 +1,12 @@
-com/dasmatarix/multiplayer/XMLSerializer.java
- com.dasmatarix.multiplayer.XMLSerializer
- com.dasmatarix.multiplayer.XMLSerializer$XmlConverter
 com/dasmatarix/multiplayer/GZipUtils.java
  com.dasmatarix.multiplayer.GZipUtils
+com/dasmatarix/multiplayer/MessageSerializer.java
+ com.dasmatarix.multiplayer.MessageSerializer
 com/dasmatarix/multiplayer/MultiplayerClientScript.java
  com.dasmatarix.multiplayer.MultiplayerClientScript
-com/dasmatarix/multiplayer/ProtoSerializer.java
- com.dasmatarix.multiplayer.ProtoSerializer
-com/dasmatarix/util/UpdateMessageDigestInputStream.java
- com.dasmatarix.util.UpdateMessageDigestInputStream
-com/dasmatarix/multiplayer/CustomSerializer.java
- com.dasmatarix.multiplayer.CustomSerializer
-com/dasmatarix/multiplayer/Kryox.java
- com.dasmatarix.multiplayer.Kryox
 com/dasmatarix/multiplayer/Utils.java
  com.dasmatarix.multiplayer.Utils
-com/dasmatarix/multiplayer/KryoSerializer.java
- com.dasmatarix.multiplayer.KryoSerializer
 com/dasmatarix/multiplayer/MultiplayerServerScript.java
  com.dasmatarix.multiplayer.MultiplayerServerScript
 com/dasmatarix/multiplayer/MultiplayerModPlugin.java
  com.dasmatarix.multiplayer.MultiplayerModPlugin
-com/dasmatarix/util/FastByteArrayOutputStream.java
- com.dasmatarix.util.FastByteArrayOutputStream
- com.dasmatarix.util.FastByteArrayOutputStream$FastByteArrayInputStream

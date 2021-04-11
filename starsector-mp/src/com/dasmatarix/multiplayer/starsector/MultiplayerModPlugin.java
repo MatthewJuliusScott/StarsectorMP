@@ -1,4 +1,4 @@
-package com.dasmatarix.multiplayer;
+package com.dasmatarix.multiplayer.starsector;
 
 import com.fs.starfarer.api.BaseModPlugin;
 

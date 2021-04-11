@@ -1,12 +1,13 @@
 
 package com.dasmatarix.multiplayer;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fs.starfarer.campaign.fleet.CampaignFleet;
-import com.fs.starfarer.campaign.fleet.CargoData;
-import com.fs.starfarer.campaign.fleet.FleetData;
+import com.dasmatarix.multiplayer.exception.SerializerNotFoundException;
+import com.dasmatarix.multiplayer.serializer.ISerializer;
+import com.dasmatarix.util.Utils;
 
 /**
  * The Class MessageSerializer.
@@ -14,8 +15,26 @@ import com.fs.starfarer.campaign.fleet.FleetData;
  */
 public class MessageSerializer {
 
-	/** The Constant HEADER_LENGTH. */
-	public static final int HEADER_LENGTH = 2 * (Integer.SIZE / 8);
+	/**
+	 * The Constant HEADER_LENGTH. How many bytes long the header is. The header
+	 * should include the message length so we always know exactly how many
+	 * bytes to read to make one single message.
+	 */
+	public static final int				HEADER_LENGTH	= 2
+	        * (Integer.SIZE / 8);
+
+	/**
+	 * The class set. All classes that will be serialized have to be registered
+	 * here
+	 */
+	@SuppressWarnings("rawtypes")
+	protected Map<Integer, ISerializer>	register		= new HashMap<Integer, ISerializer>();
+
+	/**
+	 * Instantiates a new message serializer with no registered serializers.
+	 */
+	public MessageSerializer() {
+	}
 
 	/**
 	 * Gets the header.
@@ -23,7 +42,7 @@ public class MessageSerializer {
 	 * @param inBytes the in bytes
 	 * @return the header
 	 */
-	protected static byte[] getHeader(byte[] inBytes) {
+	protected byte[] getHeader(byte[] inBytes) {
 		byte[] bytes = new byte[HEADER_LENGTH];
 		System.arraycopy(inBytes, 0, bytes, HEADER_LENGTH, bytes.length);
 		return bytes;
@@ -35,54 +54,50 @@ public class MessageSerializer {
 	 * @param inBytes the in bytes
 	 * @return the body
 	 */
-	protected static byte[] getBody(byte[] inBytes) {
+	protected byte[] getBody(byte[] inBytes) {
 		byte[] bytes = new byte[inBytes.length - HEADER_LENGTH];
 		System.arraycopy(inBytes, HEADER_LENGTH, bytes, 0, bytes.length);
 		return bytes;
 	}
 
 	/**
-	 * The class set. All classes that will be serialized have to be registered
-	 * here
+	 * Deserialize.
+	 *
+	 * @param bytes the bytes
+	 * @param hashCode the clazz
+	 * @return the object
+	 * @throws IOException                 Signals that an I/O exception has
+	 *                                     occurred.
+	 * @throws SerializerNotFoundException the serializer not found exception
 	 */
 	@SuppressWarnings("rawtypes")
-	protected static Map<Integer, Class> classRegister = new HashMap<Integer, Class>();
-	static {
-		classRegister.put(FleetData.class.getName().hashCode(),
-		        FleetData.class);
-		classRegister.put(CargoData.class.getName().hashCode(),
-		        CargoData.class);
-		classRegister.put(CampaignFleet.class.getName().hashCode(),
-		        CampaignFleet.class);
-	}
-	
-	/**
-	 * The main method.
-	 *
-	 * @param args the arguments
-	 * @throws Exception the exception
-	 */
-	public static void main(String[] args) throws Exception {
-		MessageSerializer serializer = new MessageSerializer();
-		CargoData expected = new CargoData(true);
-		expected.getCredits().add(12345F);
-		byte[] bytes = serializer.serialize(expected, CargoData.class);
-		System.out.println("Serialized actual: " + Utils.bytesToHexString(bytes));
-		CargoData actual = (CargoData) serializer.deserialize(bytes, CargoData.class);
-		System.out.println(expected.getCredits().get() + " equals "
-		        + actual.getCredits().get() + ", "
-		        + (expected.getCredits().get() == actual.getCredits().get()));
+	public Object deserialize(byte[] bytes, int hashCode)
+	        throws IOException, SerializerNotFoundException {
+		ISerializer serializer = register.get(hashCode);
+		if (serializer == null)
+			throw new SerializerNotFoundException("Serializer not found. Register a serializer for it on the server and the client before trying to deserialize an object of that type.");
+		return serializer.deserialize(bytes);
 	}
 
 	/**
-	 * Deserialize.
+	 * Register serializer.
 	 *
-	 * @param bytes  the bytes
-	 * @param class1 the class 1
-	 * @return the object
+	 * @param serializer the serializer
+	 * @param clazz      the clazz
 	 */
-	protected Object deserialize(byte[] bytes, Class clazz) {
-		return null;
+	@SuppressWarnings("rawtypes")
+	public void register(Class clazz, ISerializer serializer) {
+		register.put(clazz.getName().hashCode(), serializer);
+	}
+
+	/**
+	 * Gets the serializer.
+	 *
+	 * @return the serializer
+	 */
+	@SuppressWarnings("rawtypes")
+	public ISerializer getSerializer(Class clazz) {
+		return register.get(clazz.getName().hashCode());
 	}
 
 	/**
@@ -91,14 +106,20 @@ public class MessageSerializer {
 	 * @param object the object
 	 * @param clazz  the clazz
 	 * @return the byte[]
-	 * @throws ClassNotFoundException the class not found exception
+	 * @throws SerializerNotFoundException the serializer not found exception
+	 * @throws IOException                 Signals that an I/O exception has
+	 *                                     occurred.
 	 */
-	protected byte[] serialize(Object object, Class clazz)
-	        throws SerializerNotFoundException {
-		
-		
-		
-		return null;
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public byte[] serialize(Object object, int hashCode)
+	        throws SerializerNotFoundException, IOException {
+
+		ISerializer serializer = register.get(hashCode);
+		if (serializer == null) {
+			throw new SerializerNotFoundException(
+			        "Serializer not found. Register a serializer of it's type for it on the server and the client before trying to serialize an object.");
+		}
+		return serializer.serialize(object);
 	}
 
 	/**
@@ -108,7 +129,8 @@ public class MessageSerializer {
 	 * @param clazz       the clazz
 	 * @return the header
 	 */
-	protected byte[] getHeader(byte[] messageBody, Class clazz) {
+	@SuppressWarnings("rawtypes")
+	public byte[] getHeader(byte[] messageBody, Class clazz) {
 		byte[] header = new byte[HEADER_LENGTH];
 		Utils.addIntToByteArray(messageBody.length, header, 0);
 		Utils.addIntToByteArray(clazz.getName().hashCode(), header, 4);

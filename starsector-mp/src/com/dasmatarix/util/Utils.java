@@ -1,12 +1,5 @@
 
-package com.dasmatarix.multiplayer;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import org.springframework.util.FastByteArrayOutputStream;
+package com.dasmatarix.util;
 
 /**
  * The Class Utils.

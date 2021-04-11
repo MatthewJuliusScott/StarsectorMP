@@ -1,5 +1,5 @@
 
-package com.dasmatarix.multiplayer;
+package com.dasmatarix.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

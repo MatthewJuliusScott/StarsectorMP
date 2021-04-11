@@ -1,7 +1,8 @@
 
-package com.dasmatarix.multiplayer;
+package com.dasmatarix.multiplayer.starsector;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
@@ -12,22 +13,24 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.lazywizard.console.Console;
 
+import com.dasmatarix.multiplayer.MessageManager;
+import com.dasmatarix.multiplayer.MessageSerializer;
+import com.dasmatarix.multiplayer.exception.HandlerNotFoundException;
+import com.dasmatarix.multiplayer.exception.SerializerNotFoundException;
+import com.dasmatarix.multiplayer.model.ExampleObject;
+import com.dasmatarix.util.Utils;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignFleetAPI;
-import com.fs.starfarer.api.campaign.CargoAPI;
-import com.fs.starfarer.api.impl.campaign.fleets.FleetFactoryV3;
-import com.fs.starfarer.campaign.fleet.CampaignFleet;
-import com.fs.starfarer.campaign.fleet.CargoData;
-import com.fs.starfarer.campaign.fleet.FleetData;
 
 //http://rox-xmlrpc.sourceforge.net/niotut/
 //https://stackoverflow.com/questions/11745686/java-nio-client
@@ -37,7 +40,8 @@ import com.fs.starfarer.campaign.fleet.FleetData;
 public class MultiplayerServerScript implements EveryFrameScript {
 
 	/** The serializer. */
-	MessageSerializer							serializer		= new MessageSerializer();
+	MessageManager								messageManager	= StarsectorMessageManager
+	        .createServerMessageManager();
 
 	/** The Constant CYCLE_MILLIS. */
 	private static final long					CYCLE_MILLIS	= 1000L;
@@ -212,8 +216,8 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	        throws IOException, Exception {
 
 		// TODO optimize, 1 object so as to avoid System.arraycopy()
-		byte[] body = serializer.serialize(object, clazz);
-		byte[] header = serializer.getHeader(body, clazz);
+		byte[] body = messageManager.serialize(object, clazz);
+		byte[] header = messageManager.getHeader(body, clazz);
 
 		byte[] bytes = new byte[header.length + body.length];
 
@@ -247,9 +251,13 @@ public class MultiplayerServerScript implements EveryFrameScript {
 	 * the connection.
 	 *
 	 * @param key the key
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException                 Signals that an I/O exception has
+	 *                                     occurred.
+	 * @throws SerializerNotFoundException
+	 * @throws HandlerNotFoundException 
 	 */
-	private void read(SelectionKey key) throws IOException {
+	private void read(SelectionKey key)
+	        throws IOException, SerializerNotFoundException, HandlerNotFoundException {
 
 		SocketChannel channel = (SocketChannel) key.channel();
 
@@ -290,23 +298,7 @@ public class MultiplayerServerScript implements EveryFrameScript {
 					        + Utils.bytesToHexString(header.array())
 					        + Utils.bytesToHexString(bytes));
 
-					if (hashCode == CampaignFleet.class.getName().hashCode()) {
-						CampaignFleet fleet = (CampaignFleet) serializer
-						        .deserialize(bytes, CampaignFleet.class);
-						if (Global.getSector() == null) {
-							Console.showMessage(
-							        ReflectionToStringBuilder.toString(fleet));
-						}
-
-					} else if (hashCode == CargoData.class.getName()
-					        .hashCode()) {
-						CargoData cargoData = (CargoData) serializer
-						        .deserialize(bytes, CargoData.class);
-						if (Global.getSector() == null) {
-							Console.showMessage(ReflectionToStringBuilder
-							        .toString(cargoData));
-						}
-					}
+					messageManager.handle(bytes, hashCode);
 
 				} else {
 					// TODO did we get a bad message?
@@ -354,17 +346,44 @@ public class MultiplayerServerScript implements EveryFrameScript {
 			// TODO send session start messages
 			SelectionKey key = client.register(selector, SelectionKey.OP_WRITE);
 
-			CampaignFleet fleet;
-			if (Global.getSector() != null) {
-				fleet = (CampaignFleet) Global.getSector().getPlayerFleet();
-				send(key, fleet, CampaignFleet.class);
-			} else {
-				// this is just so when testing from main() instead of inside
-				// starsector we send something
-				CargoData cargo = new CargoData(true);
-				cargo.getCredits().add(12345F);
-				send(key, cargo, CargoData.class);
-			}
+			// TODO delete later, this is a test
+			ExampleObject expected = new ExampleObject();
+
+			// Serialize values of primitive types
+			expected.setB(true); // boolean value
+			expected.setI(10); // int value
+			expected.setD(10.5); // double value
+
+			// Serialize objects of primitive wrapper types
+			expected.setWb(Boolean.TRUE);
+			expected.setWi(new Integer(10));
+			expected.setWd(new Double(10.5));
+
+			// Serialize various types of arrays
+			expected.setIa(new int[]{1, 2, 3, 4});
+			expected.setDa(new Double[]{10.5, 20.5});
+			expected.setSa(new String[]{"msg", "pack", "for", "java"});
+			expected.setBa(new byte[]{0x30, 0x31, 0x32}); // byte array
+
+			// Serialize various types of other reference values
+			expected.setWs("MesagePack"); // String object
+			expected.setBuf(ByteBuffer.wrap(new byte[]{0x30, 0x31, 0x32})); // ByteBuffer
+			                                                                // object
+			expected.setBi(BigInteger.ONE); // BigInteger object
+
+			// Serialize List object
+			List<String> list = new ArrayList<String>();
+			list.add("msgpack");
+			list.add("for");
+			list.add("java");
+			expected.setDstList(list); // List object
+
+			// Serialize Map object
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("sadayuki", "furuhashi");
+			map.put("muga", "nishizawa");
+			expected.setDstMap(map); // Map object
+			send(key, expected, ExampleObject.class);
 		}
 	}
 }

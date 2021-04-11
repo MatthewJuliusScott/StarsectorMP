@@ -11,7 +11,7 @@ import java.util.Map;
  * The Class ExampleObject.
  */
 public class ExampleObject {
-
+	
 	/** The b. */
 	private boolean	b;
 

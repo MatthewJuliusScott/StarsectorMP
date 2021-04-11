@@ -12,18 +12,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.lazywizard.console.Console;
-import org.lwjgl.util.vector.Vector2f;
-
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
-import com.fs.starfarer.api.campaign.StarSystemAPI;
-import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.campaign.fleet.CampaignFleet;
 import com.fs.starfarer.campaign.fleet.CargoData;
-import com.thoughtworks.xstream.XStream;
+import com.fs.starfarer.campaign.fleet.FleetData;
 
 //http://rox-xmlrpc.sourceforge.net/niotut/
 //https://stackoverflow.com/questions/11745686/java-nio-client
@@ -32,6 +28,9 @@ import com.thoughtworks.xstream.XStream;
  * 
  */
 public class MultiplayerClientScript implements EveryFrameScript {
+
+	/** The serializer. */
+	XMLSerializer				serializer		= new XMLSerializer();
 
 	/** The Constant CYCLE_MILLIS. */
 	private static final long	CYCLE_MILLIS	= 1000L;
@@ -47,7 +46,7 @@ public class MultiplayerClientScript implements EveryFrameScript {
 
 	/** The channel. */
 	SocketChannel				channel;
-	
+
 	/**
 	 * The main method.
 	 *
@@ -55,7 +54,8 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	 * @throws Exception the exception
 	 */
 	public static void main(String[] args) throws Exception {
-		MultiplayerClientScript client = new MultiplayerClientScript("localhost", 7777);
+		MultiplayerClientScript client = new MultiplayerClientScript(
+		        "localhost", 7777);
 		while (true) {
 			client.advance(1);
 		}
@@ -64,11 +64,17 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	/**
 	 * Instantiates a new multiplayer client script.
 	 *
+	 * @param host the host
+	 * @param port the port
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public MultiplayerClientScript(String host, int port) throws IOException {
 		Console.showMessage("Connecting to Server on port " + port + "...");
-		open(host, port);
+		try {
+			open(host, port);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -97,8 +103,9 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	 * @param host the host
 	 * @param port the port
 	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws Exception   the exception
 	 */
-	public void open(String host, int port) throws IOException {
+	public void open(String host, int port) throws IOException, Exception {
 		channel = SocketChannel.open();
 		channel.configureBlocking(true);
 		channel.connect(new InetSocketAddress(host, port));
@@ -113,24 +120,19 @@ public class MultiplayerClientScript implements EveryFrameScript {
 		channel.configureBlocking(false);
 		selector = SelectorProvider.provider().openSelector();
 
-		// channel.register(selector, SelectionKey.OP_WRITE);
-		// TODO send session start messages
+		CampaignFleet fleet;
+		if (Global.getSector() != null) {
+			fleet = (CampaignFleet) Global.getSector().getPlayerFleet();
+			send(fleet, CampaignFleet.class);
+		} else {
+			// this is just so when testing from main() instead of inside
+			// starsector we send something
+			CargoData cargo = new CargoData(true);
+			cargo.getCredits().add(12345F);
+			send(cargo, CargoData.class);
+		}
 
 		channel.register(selector, SelectionKey.OP_READ);
-	}
-
-	/**
-	 * Send player fleet.
-	 */
-	public void sendPlayerFleet() {
-		CampaignFleetAPI campaignFleet = Global.getSector().getPlayerFleet();
-
-		String id = campaignFleet.getId();
-		Vector2f location = campaignFleet.getLocation();
-		List<FleetMemberAPI> fleetMembers = campaignFleet
-		        .getMembersWithFightersCopy();
-
-		StarSystemAPI starSystem = campaignFleet.getStarSystem();
 	}
 
 	/**
@@ -163,7 +165,8 @@ public class MultiplayerClientScript implements EveryFrameScript {
 			byte[] item = items.next();
 			items.remove();
 			channel.write(ByteBuffer.wrap(item));
-			Console.showMessage("Sending " + item.length + " bytes.");
+			Console.showMessage("Sending message: " + item.length
+			        + " bytes. Message: " + Utils.bytesToHexString(item));
 		}
 		channel.register(selector, SelectionKey.OP_READ);
 	}
@@ -173,14 +176,26 @@ public class MultiplayerClientScript implements EveryFrameScript {
 	 *
 	 * @param object the object
 	 * @param clazz  the clazz
-	 * @throws IOException            Signals that an I/O exception has
-	 *                                occurred.
-	 * @throws ClassNotFoundException the class not found exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws Exception   the exception
 	 */
 	public void send(Object object, @SuppressWarnings("rawtypes") Class clazz)
-	        throws IOException, ClassNotFoundException {
-		byte[] bytes = Serializer.serialize(object, clazz);
-		Console.showMessage("Creating message: " + object.toString());
+	        throws IOException, Exception {
+
+		// TODO optimize, 1 object so as to avoid System.arraycopy()
+		byte[] body = serializer.serialize(object, clazz);
+		byte[] header = serializer.getHeader(body, clazz);
+
+		byte[] bytes = new byte[header.length + body.length];
+
+		System.arraycopy(body, 0, bytes, CustomSerializer.HEADER_LENGTH,
+		        body.length);
+		System.arraycopy(header, 0, bytes, 0, header.length);
+
+		if (Global.getSector() == null) {
+			Console.showMessage("Creating message: "
+			        + ReflectionToStringBuilder.toString(object));
+		}
 		pendingData.add(bytes);
 	}
 
@@ -199,18 +214,7 @@ public class MultiplayerClientScript implements EveryFrameScript {
 				}
 				if (channel.isConnected() && channel.isOpen()) {
 
-					// TODO remove, just for testing for now
-					CargoAPI cargo;
-					if (Global.getSector() != null) {
-						cargo = Global.getSector().getPlayerFleet().getCargo();
-					} else {
-						cargo = new CargoData(true);
-						cargo.getCredits().add(12345F);
-					}
-
 					// TODO send messages
-					send(cargo, CargoData.class);
-					
 					write();
 				}
 
@@ -221,12 +225,16 @@ public class MultiplayerClientScript implements EveryFrameScript {
 			Console.showMessage(e);
 		}
 	}
-	
-	ByteBuffer header;
-	ByteBuffer inBuf;
-	
+
+	/** The header. */
+	ByteBuffer	header;
+
+	/** The in buf. */
+	ByteBuffer	inBuf;
+
 	/**
-	 * Read data from the server.
+	 * Read data from the server, close the connection cleanly if the server
+	 * closes the connection.
 	 *
 	 * @return the list
 	 * @throws IOException Signals that an I/O exception has occurred.
@@ -242,21 +250,48 @@ public class MultiplayerClientScript implements EveryFrameScript {
 				hashCode = header.getInt();
 			}
 			if (messageSize > 0) {
-				Console.showMessage("Message received, size: " + messageSize + " bytes.");
+				Console.showMessage("Message received, size: "
+				        + (messageSize + CustomSerializer.HEADER_LENGTH)
+				        + " bytes.");
+
+				// if the message size is bigger than the heap size it will
+				// crash
+				// clearly I need to learn how to use NIO sockets better, the
+				// buffer
+				// is supposed to be small and only read part of a large message
+				// at a time, not just allocate more memory to read all of a
+				// large
+				// message in one go. The problem with that is I'm not sure
+				// where to
+				// start with reading a message across multiple frames.
 				inBuf = ByteBuffer.allocate(messageSize);
 
 				// TODO handle result
 				if (channel.read(inBuf) > 0) {
 
 					// TODO extract out
-					byte[] bytes = Utils.gzipUncompress(inBuf.array());
-					String result = new String(bytes);
-					Console.showMessage("Message received, message: " + result);
-					
+					byte[] bytes = new byte[messageSize];
+					System.arraycopy(inBuf.array().clone(), 0, bytes, 0,
+					        bytes.length);
+					Console.showMessage("Message received, message: "
+					        + Utils.bytesToHexString(header.array())
+					        + Utils.bytesToHexString(bytes));
+
 					if (hashCode == CampaignFleet.class.getName().hashCode()) {
-						CampaignFleet campaignFleet = (CampaignFleet)Serializer.deserialize(bytes);
-					} else if (hashCode == CargoData.class.getName().hashCode()) {
-						CargoData cargoData = (CargoData)Serializer.deserialize(bytes);
+						CampaignFleet fleet = (CampaignFleet) serializer
+						        .deserialize(bytes, CampaignFleet.class);
+						if (Global.getSector() == null) {
+							Console.showMessage(
+							        ReflectionToStringBuilder.toString(fleet));
+						}
+					} else if (hashCode == CargoData.class.getName()
+					        .hashCode()) {
+						CargoData cargoData = (CargoData) serializer
+						        .deserialize(bytes, CargoData.class);
+						if (Global.getSector() == null) {
+							Console.showMessage(ReflectionToStringBuilder
+							        .toString(cargoData));
+						}
 					}
 
 				} else {

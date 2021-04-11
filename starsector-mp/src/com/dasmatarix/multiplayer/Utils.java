@@ -12,7 +12,7 @@ import org.springframework.util.FastByteArrayOutputStream;
  * The Class Utils.
  */
 public class Utils {
-	
+
 	/** The Constant HEX_ARRAY. */
 	private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
@@ -51,8 +51,21 @@ public class Utils {
 	/**
 	 * Adds an int to byte array.
 	 *
+	 * @param i     the i
+	 * @param bytes the bytes
+	 */
+	public static void intToByteArray(int i) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (i >>> 24);
+		bytes[1] = (byte) (i >>> 16);
+		bytes[2] = (byte) (i >>> 8);
+		bytes[3] = (byte) i;
+	}
+
+	/**
+	 * Adds an int to byte array.
+	 *
 	 * @param i          the i
-	 * @param bytes      the bytes
 	 * @param startIndex the start index
 	 */
 	public static void addIntToByteArray(int i, byte[] bytes, int startIndex) {
@@ -60,50 +73,5 @@ public class Utils {
 		bytes[startIndex + 1] = (byte) (i >>> 16);
 		bytes[startIndex + 2] = (byte) (i >>> 8);
 		bytes[startIndex + 3] = (byte) i;
-	}
-
-	/**
-	 * Gzip compress.
-	 *
-	 * @param uncompressedData the uncompressed data
-	 * @return the byte[]
-	 */
-	public static byte[] gzipCompress(byte[] uncompressedData) {
-		byte[] result = new byte[]{};
-		try (FastByteArrayOutputStream bos = new FastByteArrayOutputStream(
-		        uncompressedData.length);
-		        GZIPOutputStream gzipOS = new GZIPOutputStream(bos)) {
-			gzipOS.write(uncompressedData);
-			// You need to close it before using bos
-			gzipOS.close();
-			result = bos.toByteArray();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
-
-	/**
-	 * Gzip uncompress.
-	 *
-	 * @param compressedData the compressed data
-	 * @return the byte[]
-	 */
-	public static byte[] gzipUncompress(byte[] compressedData) {
-		byte[] result = new byte[]{};
-		try (ByteArrayInputStream bis = new ByteArrayInputStream(
-		        compressedData);
-				FastByteArrayOutputStream bos = new FastByteArrayOutputStream();
-		        GZIPInputStream gzipIS = new GZIPInputStream(bis)) {
-			byte[] buffer = new byte[1024];
-			int len;
-			while ((len = gzipIS.read(buffer)) != -1) {
-				bos.write(buffer, 0, len);
-			}
-			result = bos.toByteArray();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return result;
 	}
 }

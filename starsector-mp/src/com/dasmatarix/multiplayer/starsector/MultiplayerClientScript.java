@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.lazywizard.console.Console;
 
 import com.dasmatarix.multiplayer.MessageManager;
@@ -225,11 +224,6 @@ public class MultiplayerClientScript implements EveryFrameScript {
 		System.arraycopy(body, 0, bytes, MessageSerializer.HEADER_LENGTH,
 		        body.length);
 		System.arraycopy(header, 0, bytes, 0, header.length);
-
-		if (Global.getSector() == null) {
-			Console.showMessage("Creating message: "
-			        + ReflectionToStringBuilder.toString(object));
-		}
 		pendingData.add(bytes);
 	}
 

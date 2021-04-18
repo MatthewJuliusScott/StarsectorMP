@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.springframework.util.FastByteArrayOutputStream;
-
 public class GZipUtils {
 
 	/**

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.lazywizard.console.Console;
 
 import com.dasmatarix.multiplayer.MessageManager;
@@ -231,10 +230,6 @@ public class MultiplayerServerScript implements EveryFrameScript {
 				Queue<byte[]> pendingData = this.dataMap.get(channel);
 				if (pendingData == null) {
 					pendingData = new LinkedList<byte[]>();
-				}
-				if (Global.getSector() == null) {
-					Console.showMessage("Creating message: "
-					        + ReflectionToStringBuilder.toString(object));
 				}
 
 				pendingData.add(bytes);

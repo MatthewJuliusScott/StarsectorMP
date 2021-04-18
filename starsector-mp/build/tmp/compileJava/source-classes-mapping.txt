@@ -1,12 +1,39 @@
-com/dasmatarix/multiplayer/GZipUtils.java
- com.dasmatarix.multiplayer.GZipUtils
+com/dasmatarix/multiplayer/MessageHandler.java
+ com.dasmatarix.multiplayer.MessageHandler
+com/dasmatarix/multiplayer/model/ExampleObject.java
+ com.dasmatarix.multiplayer.model.ExampleObject
+com/dasmatarix/multiplayer/exception/HandlerNotFoundException.java
+ com.dasmatarix.multiplayer.exception.HandlerNotFoundException
+com/dasmatarix/multiplayer/handler/IHandler.java
+ com.dasmatarix.multiplayer.handler.IHandler
+com/dasmatarix/multiplayer/starsector/StarsectorMessageManager.java
+ com.dasmatarix.multiplayer.starsector.StarsectorMessageManager
+com/dasmatarix/multiplayer/handler/ClientExampleObjectHandler.java
+ com.dasmatarix.multiplayer.handler.ClientExampleObjectHandler
+com/dasmatarix/multiplayer/handler/ServerExampleObjectHandler.java
+ com.dasmatarix.multiplayer.handler.ServerExampleObjectHandler
+com/dasmatarix/util/Utils.java
+ com.dasmatarix.util.Utils
+com/dasmatarix/multiplayer/starsector/MultiplayerModPlugin.java
+ com.dasmatarix.multiplayer.starsector.MultiplayerModPlugin
+com/dasmatarix/multiplayer/starsector/MultiplayerClientScript.java
+ com.dasmatarix.multiplayer.starsector.MultiplayerClientScript
 com/dasmatarix/multiplayer/MessageSerializer.java
  com.dasmatarix.multiplayer.MessageSerializer
-com/dasmatarix/multiplayer/MultiplayerClientScript.java
- com.dasmatarix.multiplayer.MultiplayerClientScript
-com/dasmatarix/multiplayer/Utils.java
- com.dasmatarix.multiplayer.Utils
-com/dasmatarix/multiplayer/MultiplayerServerScript.java
- com.dasmatarix.multiplayer.MultiplayerServerScript
-com/dasmatarix/multiplayer/MultiplayerModPlugin.java
- com.dasmatarix.multiplayer.MultiplayerModPlugin
+com/dasmatarix/multiplayer/serializer/ExampleObjectSerializer.java
+ com.dasmatarix.multiplayer.serializer.ExampleObjectSerializer
+com/dasmatarix/util/UpdateMessageDigestInputStream.java
+ com.dasmatarix.util.UpdateMessageDigestInputStream
+com/dasmatarix/util/GZipUtils.java
+ com.dasmatarix.util.GZipUtils
+com/dasmatarix/multiplayer/MessageManager.java
+ com.dasmatarix.multiplayer.MessageManager
+com/dasmatarix/multiplayer/exception/SerializerNotFoundException.java
+ com.dasmatarix.multiplayer.exception.SerializerNotFoundException
+com/dasmatarix/multiplayer/serializer/ISerializer.java
+ com.dasmatarix.multiplayer.serializer.ISerializer
+com/dasmatarix/multiplayer/starsector/MultiplayerServerScript.java
+ com.dasmatarix.multiplayer.starsector.MultiplayerServerScript
+com/dasmatarix/util/FastByteArrayOutputStream.java
+ com.dasmatarix.util.FastByteArrayOutputStream
+ com.dasmatarix.util.FastByteArrayOutputStream$FastByteArrayInputStream

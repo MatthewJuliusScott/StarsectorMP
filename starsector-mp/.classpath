@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="target/classes" path="src">
+	<classpathentry kind="src" output="target/classes" path="src/main/java">
 		<attributes>
-			<attribute name="gradle_scope" value="main"/>
-			<attribute name="gradle_used_by_scope" value="main,test"/>
 			<attribute name="optional" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
@@ -14,25 +12,16 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/commons-compiler.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/commons-compiler-jdk.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/fs.common_obf.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/fs.sound_obf.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/janino.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/jinput.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/jogg-0.0.7.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/jorbis-0.0.15.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/json.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/log4j-1.2.9.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/lwjgl.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/lwjgl_util.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/starfarer.api.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/starfarer_obf.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/xstream-1.4.10.jar"/>
-	<classpathentry kind="lib" path="D:/Program Files (x86)/Fractal Softworks/Starsector/mods/Console Commands/jars/lw_Console.jar"/>
 	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="test" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>

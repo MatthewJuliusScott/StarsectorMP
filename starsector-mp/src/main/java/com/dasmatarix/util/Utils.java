@@ -25,9 +25,12 @@ import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
+import com.sun.codemodel.JVar;
 
 /**
  * The Class Utils.
@@ -120,7 +123,7 @@ public class Utils {
 					// add the imports
 					JClass jObjenesis = codeModel.directClass("org.objenesis.Objenesis");
 					JClass jObjenesisStd = codeModel.directClass("org.objenesis.ObjenesisStd");
-					JClass jClazz = codeModel.directClass(clazz.getName());
+					JClass jClazz = codeModel.directClass(clazz.getCanonicalName());
 					
 					for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 						try {
@@ -139,8 +142,10 @@ public class Utils {
 						JMethod serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
 						serializeMethod.body().directStatement("return new byte[0];");
 						JMethod deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
-						deserializeMethod.body().directStatement(jObjenesis.name() + "objenesis = new " + jObjenesisStd.name() +"();\r\n"
-								+ "return (" + className + ")objenesis.newInstance(" + jClazz.name() + ".class);");
+						JVar jobj = deserializeMethod.body().decl(jObjenesis, "objenesis", JExpr._new(jObjenesisStd));
+						JInvocation returnExpression = jobj.invoke("newInstance");
+						returnExpression.arg(jClazz.dotclass());
+						deserializeMethod.body()._return(returnExpression);
 					}
 				} catch (IllegalArgumentException | IntrospectionException | NoClassDefFoundError | SecurityException
 						| ExceptionInInitializerError | InstantiationError | JClassAlreadyExistsException e1) {

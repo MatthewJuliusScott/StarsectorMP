@@ -1,6 +1,28 @@
 
 package com.dasmatarix.util;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
+
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+
+import com.fs.util.DoNotObfuscate;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JPackage;
+
 /**
  * The Class Utils.
  */
@@ -35,8 +57,7 @@ public class Utils {
 		int len = s.length();
 		byte[] data = new byte[len / 2];
 		for (int i = 0; i < len; i += 2) {
-			data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-			        + Character.digit(s.charAt(i + 1), 16));
+			data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
 		}
 		return data;
 	}
@@ -66,5 +87,45 @@ public class Utils {
 		bytes[startIndex + 1] = (byte) (i >>> 16);
 		bytes[startIndex + 2] = (byte) (i >>> 8);
 		bytes[startIndex + 3] = (byte) i;
+	}
+
+	public static void main(String[] args) throws Exception {
+		try {
+			
+			JCodeModel codeModel = new JCodeModel();
+			JPackage jp = codeModel._package("com.dasmatarix.multiplayer.serializer");
+			
+			Reflections reflections = new Reflections("com.fs.starfarer", new SubTypesScanner(false));
+			Set<Class<? extends DoNotObfuscate>> doNotObfuscateTypes = reflections.getSubTypesOf(DoNotObfuscate.class);
+			for (Class clazz : doNotObfuscateTypes) {
+				
+				JDefinedClass jc = jp._class("Generated");
+				
+				System.out.println("Plugin output: Class name " + clazz.getName());
+				try {
+					Objenesis objenesis = new ObjenesisStd(); // or ObjenesisSerializer
+					Object bean = objenesis.newInstance(clazz);
+					PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(clazz, Object.class)
+							.getPropertyDescriptors();
+					for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+						try {
+							if (clazz != null && propertyDescriptor != null
+									&& propertyDescriptor.getReadMethod() != null) {
+								propertyDescriptor.getReadMethod().invoke(bean);
+								System.out.println("    " + propertyDescriptor.getName());
+								
+							}
+						} catch (Exception | ExceptionInInitializerError | NoClassDefFoundError e2) {
+							// do nothing
+						}
+
+					}
+				} catch (IntrospectionException | NoClassDefFoundError | SecurityException | ExceptionInInitializerError | InstantiationError e1) {
+					e1.printStackTrace();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

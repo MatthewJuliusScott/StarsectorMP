@@ -3,15 +3,8 @@ package com.dasmatarix.util;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.util.Set;
 
 import org.objenesis.Objenesis;
@@ -20,20 +13,23 @@ import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 
 import com.fs.util.DoNotObfuscate;
+import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
+import com.sun.codemodel.JStatement;
+import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JVar;
 
-public class SerializerCodeGeneration {
-	
+public class _ASerializerCodeGeneration {
+
 	public static void main(String[] args) throws Exception {
 		try {
 			Reflections reflections = new Reflections("com.fs.starfarer", new SubTypesScanner(false));
@@ -59,14 +55,27 @@ public class SerializerCodeGeneration {
 					// add the imports
 					JClass jObjenesis = codeModel.directClass("org.objenesis.Objenesis");
 					JClass jObjenesisStd = codeModel.directClass("org.objenesis.ObjenesisStd");
+					JClass jByteArrayOutputStream = codeModel.directClass("java.io.ByteArrayOutputStream");
+					JClass jObjectOutputStream = codeModel.directClass("java.io.ObjectOutputStream");
+					JClass jIOException = codeModel.directClass("java.io.IOException");
 					JClass jClazz = codeModel.directClass(clazz.getCanonicalName());
 
 					// add the serialize method
 					JMethod serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
-					serializeMethod.body().directStatement("return new byte[0];");
 					// TODO add each of the values as bytes including recursively calling serialize
 					// and collections to fixed length arrays
 
+					JVar jBos = serializeMethod.body().decl(jByteArrayOutputStream, "bos", JExpr._new(jByteArrayOutputStream));
+					serializeMethod.body().decl(jObjectOutputStream, "out", JExpr._null());
+					JTryBlock tryBlock = serializeMethod.body()._try();
+					JExpression returnStatement = jBos.invoke("toByteArray");
+					tryBlock.body()._return(returnStatement);
+					JBlock finallyBlock = tryBlock._finally();
+					JTryBlock finallyTryBlock = finallyBlock._try();
+					JStatement bosClose = jBos.invoke("close");
+					finallyTryBlock.body().add(bosClose);
+					finallyTryBlock._catch(jIOException);
+					
 					// add the deserialize method
 					JMethod deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
 					JVar jObj = deserializeMethod.body().decl(jObjenesis, "objenesis", JExpr._new(jObjenesisStd));
@@ -74,42 +83,7 @@ public class SerializerCodeGeneration {
 					newInstanceExpression.arg(jClazz.dotclass());
 					JVar jClazzObj = deserializeMethod.body().decl(jClazz, "obj", newInstanceExpression);
 					// set all the values from bytes before return
-					deserializeMethod.body()._return(jClazzObj);
 
-					/*
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					ObjectOutputStream out = null;
-					try {
-					  out = new ObjectOutputStream(bos);   
-					  out.writeObject(yourObject);
-					  out.flush();
-					  byte[] yourBytes = bos.toByteArray();
-					  // ...
-					} finally {
-					  try {
-					    bos.close();
-					  } catch (IOException ex) {
-					    // ignore close exception
-					  }
-					}
-					
-					
-					ByteArrayInputStream bis = new ByteArrayInputStream(yourBytes);
-					ObjectInput in = null;
-					try {
-					  in = new ObjectInputStream(bis);
-					  Object o = in.readObject();
-					  // ...
-					} finally {
-					  try {
-					    if (in != null) {
-					      in.close();
-					    }
-					  } catch (IOException ex) {
-					    // ignore close exception
-					  }
-					}
-					*/
 					for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 						try {
 							if (clazz != null && propertyDescriptor != null
@@ -122,13 +96,15 @@ public class SerializerCodeGeneration {
 
 								Method readMethod = propertyDescriptor.getReadMethod();
 								Method writeMethod = propertyDescriptor.getWriteMethod();
-							
+
 								if (readMethod != null && writeMethod != null) {
-									System.out.println("    " + propertyDescriptor.getName() + " : " + propertyDescriptor.getPropertyType().getName());
+									System.out.println("    " + propertyDescriptor.getName() + " : "
+											+ propertyDescriptor.getPropertyType().getName());
 									System.out.println("        " + readMethod.getName());
 									System.out.println("        " + writeMethod.getName());
-									// serializeMethod.body().decl();
-								} // TODO add if propertyDescriptor.getPropertyType() instanceof MutableValue.class etc.
+									// TODO writeProperty as bytes
+								} // TODO add if propertyDescriptor.getPropertyType() instanceof
+									// MutableValue.class etc.
 
 								count++;
 							}
@@ -137,17 +113,15 @@ public class SerializerCodeGeneration {
 						}
 
 					}
-					if (count > 0) {
-
+					// Generate the code
+					if (count > 0) {						
+						deserializeMethod.body()._return(jClazzObj);
+						codeModel.build(new File("src/main/java/"));
 					}
 				} catch (IllegalArgumentException | IntrospectionException | NoClassDefFoundError | SecurityException
 						| ExceptionInInitializerError | InstantiationError | JClassAlreadyExistsException e1) {
 					e1.printStackTrace();
 					continue;
-				}
-				// Generate the code
-				if (count > 0) {
-					codeModel.build(new File("src/main/java/"));
 				}
 			}
 		} catch (Exception e) {

@@ -3,8 +3,15 @@ package com.dasmatarix.util;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.Set;
 
 import org.objenesis.Objenesis;
@@ -62,12 +69,47 @@ public class SerializerCodeGeneration {
 
 					// add the deserialize method
 					JMethod deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
-					JVar jobj = deserializeMethod.body().decl(jObjenesis, "objenesis", JExpr._new(jObjenesisStd));
-					JInvocation returnExpression = jobj.invoke("newInstance");
-					returnExpression.arg(jClazz.dotclass());
+					JVar jObj = deserializeMethod.body().decl(jObjenesis, "objenesis", JExpr._new(jObjenesisStd));
+					JInvocation newInstanceExpression = jObj.invoke("newInstance");
+					newInstanceExpression.arg(jClazz.dotclass());
+					JVar jClazzObj = deserializeMethod.body().decl(jClazz, "obj", newInstanceExpression);
 					// set all the values from bytes before return
-					deserializeMethod.body()._return(returnExpression);
+					deserializeMethod.body()._return(jClazzObj);
 
+					/*
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					ObjectOutputStream out = null;
+					try {
+					  out = new ObjectOutputStream(bos);   
+					  out.writeObject(yourObject);
+					  out.flush();
+					  byte[] yourBytes = bos.toByteArray();
+					  // ...
+					} finally {
+					  try {
+					    bos.close();
+					  } catch (IOException ex) {
+					    // ignore close exception
+					  }
+					}
+					
+					
+					ByteArrayInputStream bis = new ByteArrayInputStream(yourBytes);
+					ObjectInput in = null;
+					try {
+					  in = new ObjectInputStream(bis);
+					  Object o = in.readObject();
+					  // ...
+					} finally {
+					  try {
+					    if (in != null) {
+					      in.close();
+					    }
+					  } catch (IOException ex) {
+					    // ignore close exception
+					  }
+					}
+					*/
 					for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 						try {
 							if (clazz != null && propertyDescriptor != null
@@ -80,21 +122,13 @@ public class SerializerCodeGeneration {
 
 								Method readMethod = propertyDescriptor.getReadMethod();
 								Method writeMethod = propertyDescriptor.getWriteMethod();
-
+							
 								if (readMethod != null && writeMethod != null) {
 									System.out.println("    " + propertyDescriptor.getName() + " : " + propertyDescriptor.getPropertyType().getName());
 									System.out.println("        " + readMethod.getName());
 									System.out.println("        " + writeMethod.getName());
-									
-									JFieldVar jField = jdefinedClass.field(JMod.PRIVATE, propertyDescriptor.getPropertyType(), propertyDescriptor.getName());
-									
-									JMethod getter = jdefinedClass.method(JMod.PUBLIC, jField.type(), readMethod.getName());
-							        getter.body()._return(jField);
-							        getter.javadoc().add("Returns the " + propertyDescriptor.getName() + ".");
-							        getter.javadoc().addReturn().add(jField.name()) ;
-									
-									
-								}
+									// serializeMethod.body().decl();
+								} // TODO add if propertyDescriptor.getPropertyType() instanceof MutableValue.class etc.
 
 								count++;
 							}

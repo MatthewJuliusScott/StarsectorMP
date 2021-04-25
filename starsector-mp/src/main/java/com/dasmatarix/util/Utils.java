@@ -5,6 +5,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -19,8 +20,13 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import com.fs.util.DoNotObfuscate;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
 
 /**
@@ -91,37 +97,59 @@ public class Utils {
 
 	public static void main(String[] args) throws Exception {
 		try {
-			
-			JCodeModel codeModel = new JCodeModel();
-			JPackage jp = codeModel._package("com.dasmatarix.multiplayer.serializer");
-			
 			Reflections reflections = new Reflections("com.fs.starfarer", new SubTypesScanner(false));
 			Set<Class<? extends DoNotObfuscate>> doNotObfuscateTypes = reflections.getSubTypesOf(DoNotObfuscate.class);
 			for (Class clazz : doNotObfuscateTypes) {
-				
-				JDefinedClass jc = jp._class("Generated");
-				
-				System.out.println("Plugin output: Class name " + clazz.getName());
+				JCodeModel codeModel = new JCodeModel();
+				JPackage jPackage = codeModel._package("com.dasmatarix.multiplayer.serializer");
+				int count = 0;
 				try {
-					Objenesis objenesis = new ObjenesisStd(); // or ObjenesisSerializer
+					String className = clazz.getName();
+					if (className.lastIndexOf('.') > -1) {
+						className = className.replace('$', '.');
+						className = className.substring(className.lastIndexOf('.') + 1);
+					}
+					System.out.println(
+							"Plugin output: Class name " + clazz.getName() + ", creating " + className + "Serializer");
+					JDefinedClass jdefinedClass = jPackage._class(className + "Serializer");
+					Objenesis objenesis = new ObjenesisStd();
 					Object bean = objenesis.newInstance(clazz);
 					PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(clazz, Object.class)
 							.getPropertyDescriptors();
+
+					// add the imports
+					JClass jObjenesis = codeModel.directClass("org.objenesis.Objenesis");
+					JClass jObjenesisStd = codeModel.directClass("org.objenesis.ObjenesisStd");
+					JClass jClazz = codeModel.directClass(clazz.getName());
+					
 					for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 						try {
 							if (clazz != null && propertyDescriptor != null
 									&& propertyDescriptor.getReadMethod() != null) {
 								propertyDescriptor.getReadMethod().invoke(bean);
 								System.out.println("    " + propertyDescriptor.getName());
-								
+								count++;
 							}
 						} catch (Exception | ExceptionInInitializerError | NoClassDefFoundError e2) {
 							// do nothing
 						}
 
 					}
-				} catch (IntrospectionException | NoClassDefFoundError | SecurityException | ExceptionInInitializerError | InstantiationError e1) {
+					if (count > 0) {
+						JMethod serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
+						serializeMethod.body().directStatement("return new byte[0];");
+						JMethod deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
+						deserializeMethod.body().directStatement("Objenesis objenesis = new ObjenesisStd();\r\n"
+								+ "return (" + className + ")objenesis.newInstance(" + className + ".class);");
+					}
+				} catch (IllegalArgumentException | IntrospectionException | NoClassDefFoundError | SecurityException
+						| ExceptionInInitializerError | InstantiationError | JClassAlreadyExistsException e1) {
 					e1.printStackTrace();
+					continue;
+				}
+				// Generate the code
+				if (count > 0) {
+					codeModel.build(new File("src/main/java/"));
 				}
 			}
 		} catch (Exception e) {

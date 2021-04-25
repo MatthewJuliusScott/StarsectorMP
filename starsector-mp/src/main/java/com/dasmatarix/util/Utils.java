@@ -139,8 +139,8 @@ public class Utils {
 						JMethod serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
 						serializeMethod.body().directStatement("return new byte[0];");
 						JMethod deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
-						deserializeMethod.body().directStatement("Objenesis objenesis = new ObjenesisStd();\r\n"
-								+ "return (" + className + ")objenesis.newInstance(" + className + ".class);");
+						deserializeMethod.body().directStatement(jObjenesis.name() + "objenesis = new " + jObjenesisStd.name() +"();\r\n"
+								+ "return (" + className + ")objenesis.newInstance(" + jClazz.name() + ".class);");
 					}
 				} catch (IllegalArgumentException | IntrospectionException | NoClassDefFoundError | SecurityException
 						| ExceptionInInitializerError | InstantiationError | JClassAlreadyExistsException e1) {

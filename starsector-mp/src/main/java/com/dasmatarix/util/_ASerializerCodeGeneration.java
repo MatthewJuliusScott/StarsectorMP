@@ -6,6 +6,8 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -58,6 +60,8 @@ public class _ASerializerCodeGeneration {
 					JClass jByteArrayOutputStream = codeModel.directClass("java.io.ByteArrayOutputStream");
 					JClass jObjectOutputStream = codeModel.directClass("java.io.ObjectOutputStream");
 					JClass jIOException = codeModel.directClass("java.io.IOException");
+					JClass jSerializerNotFoundException = codeModel
+							.directClass("com.dasmatarix.multiplayer.exception.SerializerNotFoundException");
 					JClass jMessageSerializer = codeModel.directClass("com.dasmatarix.multiplayer.MessageSerializer");
 					JClass jISerializer = codeModel.directClass("com.dasmatarix.multiplayer.serializer.ISerializer");
 					JClass jClazz = codeModel.directClass(clazz.getCanonicalName());
@@ -140,19 +144,44 @@ public class _ASerializerCodeGeneration {
 										JInvocation write = jOut.invoke("writeBoolean");
 										write.arg(jParam.invoke(readMethod.getName()));
 										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(String.class)) {
+										JInvocation write = jOut.invoke("writeUTF");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+										// TODO add if propertyDescriptor.getPropertyType() instanceof
+										//     MutableValue.class etc.
+										// TODO else if same type as obj class, i.e possible self reference, need to
+										//     avoid self reference infinite loop
+										// TODO ?else detect infinite loop for A references B, B references A
+									} else if (propertyDescriptor.getPropertyType().getName().contains("$")) {
+										// no inner classes
+										continue;
+									} else if (propertyDescriptor.getPropertyType().getSimpleName().startsWith("new") || propertyDescriptor.getPropertyType().getSimpleName().startsWith("return")) {
+										continue;
+									} else if (propertyDescriptor.getPropertyType() == null) {
+										continue;
+									} else if (propertyDescriptor.getPropertyType().getName() == null) {
+										continue;
 									} else {
+										System.out.println("PROPERTY NAME = " + propertyDescriptor.getPropertyType().getCanonicalName());
 										// call the object's serializer if it exists
 										JTryBlock writeTryBlock = tryBlock.body()._try();
-										JInvocation jMessageSerializerObj = serializeMethod.body().staticInvoke(jMessageSerializer, "getInstance").invoke("getSerializer").arg(JExpr.direct("propertyDescriptor.getPropertyType()"));
-										writeTryBlock.body().add(jMessageSerializerObj);
-										JInvocation write = jOut.invoke("writeBytes");
-										write.arg(jParam.invoke(readMethod.getName()));
+										writeTryBlock._catch(jSerializerNotFoundException);
+										JClass jPropertyClass = codeModel
+												.directClass(propertyDescriptor.getPropertyType().getCanonicalName());
+										JInvocation jMessageSerializerObj = jMessageSerializer
+
+												.staticInvoke("getInstance").invoke("getSerializer")
+												.arg(JExpr.direct(jPropertyClass.fullName() + ".class"));
+										JVar jISerializerObj = writeTryBlock.body().decl(jISerializer, "serializer",
+												jMessageSerializerObj);
+										JInvocation write = jOut.invoke("write");
+										write.arg(jISerializerObj.invoke("serialize")
+												.arg(jParam.invoke(readMethod.getName())));
 										writeTryBlock.body().add(write);
 									}
 
-								} // TODO add if propertyDescriptor.getPropertyType() instanceof
-									// MutableValue.class etc.
-
+								}
 								count++;
 							}
 						} catch (Exception | ExceptionInInitializerError | NoClassDefFoundError e2) {
@@ -177,7 +206,9 @@ public class _ASerializerCodeGeneration {
 					continue;
 				}
 			}
-		} catch (Exception e) {
+		} catch (
+
+		Exception e) {
 			e.printStackTrace();
 		}
 	}

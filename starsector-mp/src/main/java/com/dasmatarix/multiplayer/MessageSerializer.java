@@ -99,8 +99,13 @@ public class MessageSerializer {
 	 * @return the serializer
 	 */
 	@SuppressWarnings("rawtypes")
-	public ISerializer getSerializer(Class clazz) {
-		return register.get(clazz.getName().hashCode());
+	public ISerializer getSerializer(Class clazz) throws SerializerNotFoundException {
+		ISerializer serializer = register.get(clazz.getName().hashCode());
+		if (serializer == null) {
+			throw new SerializerNotFoundException(
+					"Serializer not found. Register a serializer of it's type for it on the server and the client before trying to serialize an object.");
+		}
+		return serializer;
 	}
 
 	/**

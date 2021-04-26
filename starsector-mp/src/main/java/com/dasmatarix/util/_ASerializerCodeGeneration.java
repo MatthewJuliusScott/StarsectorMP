@@ -273,6 +273,7 @@ public class _ASerializerCodeGeneration {
 			// TODO else if same type as obj class, i.e possible self reference, need to
 			// avoid self reference infinite loop
 			// TODO ?else detect infinite loop for A references B, B references A
+			
 		} else if (clazz.getName().contains("$")) {
 			// no inner classes
 			return;

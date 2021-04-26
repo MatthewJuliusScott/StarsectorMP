@@ -1,9 +1,11 @@
 package com.dasmatarix.util;
 
+import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.Arrays;
@@ -11,6 +13,7 @@ import java.util.HashSet;
 
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
+import org.reflections.ReflectionUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 
@@ -36,14 +39,22 @@ public class _ASerializerCodeGeneration {
 		try {
 			Reflections reflections = new Reflections("com.fs.starfarer", new SubTypesScanner(false));
 			Set<Class<? extends DoNotObfuscate>> doNotObfuscateTypes = reflections.getSubTypesOf(DoNotObfuscate.class);
-			for (Class clazz : doNotObfuscateTypes) {
+			reflections = new Reflections("com.fs.starfarer.api", new SubTypesScanner(false));
+			Set<Class<? extends Object>> apiTypes = reflections.getSubTypesOf(Object.class);
+			Set<Class<? extends Object>> allTypes = new HashSet();
+			allTypes.addAll(doNotObfuscateTypes);
+			allTypes.addAll(apiTypes);
+
+			for (Class clazz : allTypes) {
+				if (clazz.getName().contains("$")) {
+					continue;
+				}
 				JCodeModel codeModel = new JCodeModel();
 				JPackage jPackage = codeModel._package("com.dasmatarix.multiplayer.serializer");
 				int count = 0;
 				try {
 					String className = clazz.getName();
 					if (className.lastIndexOf('.') > -1) {
-						className = className.replace('$', '.');
 						className = className.substring(className.lastIndexOf('.') + 1);
 					}
 					System.out.println(
@@ -63,7 +74,7 @@ public class _ASerializerCodeGeneration {
 					JClass jSerializerNotFoundException = codeModel
 							.directClass("com.dasmatarix.multiplayer.exception.SerializerNotFoundException");
 					JClass jMessageSerializer = codeModel.directClass("com.dasmatarix.multiplayer.MessageSerializer");
-					JClass jISerializer = codeModel.directClass("com.dasmatarix.multiplayer.serializer.ISerializer");
+					JClass jISerializer = codeModel.directClass("com.dasmatarix.multiplayer.ISerializer");
 					JClass jClazz = codeModel.directClass(clazz.getCanonicalName());
 
 					// add the serialize method
@@ -149,21 +160,24 @@ public class _ASerializerCodeGeneration {
 										write.arg(jParam.invoke(readMethod.getName()));
 										tryBlock.body().add(write);
 										// TODO add if propertyDescriptor.getPropertyType() instanceof
-										//     MutableValue.class etc.
+										// MutableValue.class etc.
 										// TODO else if same type as obj class, i.e possible self reference, need to
-										//     avoid self reference infinite loop
+										// avoid self reference infinite loop
 										// TODO ?else detect infinite loop for A references B, B references A
-									} else if (propertyDescriptor.getPropertyType().getName().contains("$")) {
+									} else if (propertyDescriptor.getPropertyType().getName().contains("$")
+											|| propertyDescriptor.getPropertyType().getCanonicalName()
+													.contains(clazz.getCanonicalName())) {
 										// no inner classes
 										continue;
-									} else if (propertyDescriptor.getPropertyType().getSimpleName().startsWith("new") || propertyDescriptor.getPropertyType().getSimpleName().startsWith("return")) {
+									} else if (propertyDescriptor.getPropertyType().getSimpleName().startsWith("new")
+											|| propertyDescriptor.getPropertyType().getSimpleName()
+													.startsWith("return")) {
 										continue;
 									} else if (propertyDescriptor.getPropertyType() == null) {
 										continue;
 									} else if (propertyDescriptor.getPropertyType().getName() == null) {
 										continue;
 									} else {
-										System.out.println("PROPERTY NAME = " + propertyDescriptor.getPropertyType().getCanonicalName());
 										// call the object's serializer if it exists
 										JTryBlock writeTryBlock = tryBlock.body()._try();
 										writeTryBlock._catch(jSerializerNotFoundException);

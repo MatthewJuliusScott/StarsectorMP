@@ -1,4 +1,4 @@
-package com.dasmatarix.multiplayer.serializer;
+package com.dasmatarix.multiplayer;
 
 import java.io.IOException;
 

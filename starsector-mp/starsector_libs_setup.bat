@@ -8,4 +8,6 @@ CALL mvn install:install-file -Dfile="./lib/fs.sound_obf.jar" -DgroupId=com.fs -
 
 CALL mvn install:install-file -Dfile="./lib/LazyLib.jar" -DgroupId=org.lazywizard -DartifactId=lazylib -Dversion=2.6 -Dpackaging=jar -DgeneratePom=true
 
-CALL mvn install:install-file -Dfile="./lib/lw_Console.jar" -DgroupId=org.lazywizard -DartifactId=console -Dversion=v2021.04.10 -Dpackaging=jar -DgeneratePom=true
+CALL mvn install:install-file -Dfile="./lib/lwjgl.jar" -DgroupId=org.lwjgl -DartifactId=lwjgl -Dversion=windows-native -Dpackaging=jar -DgeneratePom=true
+
+CALL mvn install:install-file -Dfile="./lib/lwjgl_util.jar" -DgroupId=org.lwjgl -DartifactId=lwjgl_util -Dversion=windows-native -Dpackaging=jar -DgeneratePom=true

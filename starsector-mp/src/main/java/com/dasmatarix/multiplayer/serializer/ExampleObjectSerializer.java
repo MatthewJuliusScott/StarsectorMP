@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.dasmatarix.multiplayer.ISerializer;
 import com.dasmatarix.multiplayer.model.ExampleObject;
 
 public class ExampleObjectSerializer implements ISerializer<ExampleObject> {

@@ -6,7 +6,6 @@ import java.io.IOException;
 import com.dasmatarix.multiplayer.exception.HandlerNotFoundException;
 import com.dasmatarix.multiplayer.exception.SerializerNotFoundException;
 import com.dasmatarix.multiplayer.handler.IHandler;
-import com.dasmatarix.multiplayer.serializer.ISerializer;
 
 /**
  * The Interface MessageManager. A central location for adding message

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.dasmatarix.multiplayer.exception.SerializerNotFoundException;
-import com.dasmatarix.multiplayer.serializer.ISerializer;
 import com.dasmatarix.util.Utils;
 
 // TODO: Auto-generated Javadoc

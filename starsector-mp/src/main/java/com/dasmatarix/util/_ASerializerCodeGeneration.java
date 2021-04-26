@@ -58,24 +58,29 @@ public class _ASerializerCodeGeneration {
 					JClass jByteArrayOutputStream = codeModel.directClass("java.io.ByteArrayOutputStream");
 					JClass jObjectOutputStream = codeModel.directClass("java.io.ObjectOutputStream");
 					JClass jIOException = codeModel.directClass("java.io.IOException");
+					JClass jMessageSerializer = codeModel.directClass("com.dasmatarix.multiplayer.MessageSerializer");
+					JClass jISerializer = codeModel.directClass("com.dasmatarix.multiplayer.serializer.ISerializer");
 					JClass jClazz = codeModel.directClass(clazz.getCanonicalName());
 
 					// add the serialize method
 					JMethod serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
+					serializeMethod._throws(jIOException);
+					JVar jParam = serializeMethod.param(clazz, "obj");
 					// TODO add each of the values as bytes including recursively calling serialize
 					// and collections to fixed length arrays
 
-					JVar jBos = serializeMethod.body().decl(jByteArrayOutputStream, "bos", JExpr._new(jByteArrayOutputStream));
-					serializeMethod.body().decl(jObjectOutputStream, "out", JExpr._null());
+					JVar jBos = serializeMethod.body().decl(jByteArrayOutputStream, "bos",
+							JExpr._new(jByteArrayOutputStream));
+					JVar jOut = serializeMethod.body().decl(jObjectOutputStream, "out", JExpr._null());
 					JTryBlock tryBlock = serializeMethod.body()._try();
 					JExpression returnStatement = jBos.invoke("toByteArray");
-					tryBlock.body()._return(returnStatement);
+
 					JBlock finallyBlock = tryBlock._finally();
 					JTryBlock finallyTryBlock = finallyBlock._try();
 					JStatement bosClose = jBos.invoke("close");
 					finallyTryBlock.body().add(bosClose);
 					finallyTryBlock._catch(jIOException);
-					
+
 					// add the deserialize method
 					JMethod deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
 					JVar jObj = deserializeMethod.body().decl(jObjenesis, "objenesis", JExpr._new(jObjenesisStd));
@@ -103,6 +108,48 @@ public class _ASerializerCodeGeneration {
 									System.out.println("        " + readMethod.getName());
 									System.out.println("        " + writeMethod.getName());
 									// TODO writeProperty as bytes
+									if (propertyDescriptor.getPropertyType().equals(byte.class)) {
+										JInvocation write = jOut.invoke("writeByte");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(short.class)) {
+										JInvocation write = jOut.invoke("writeShort");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(int.class)) {
+										JInvocation write = jOut.invoke("writeInt");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(long.class)) {
+										JInvocation write = jOut.invoke("writeLong");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(float.class)) {
+										JInvocation write = jOut.invoke("writeFloat");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(double.class)) {
+										JInvocation write = jOut.invoke("writeDouble");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(char.class)) {
+										JInvocation write = jOut.invoke("writeChar");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else if (propertyDescriptor.getPropertyType().equals(boolean.class)) {
+										JInvocation write = jOut.invoke("writeBoolean");
+										write.arg(jParam.invoke(readMethod.getName()));
+										tryBlock.body().add(write);
+									} else {
+										// call the object's serializer if it exists
+										JTryBlock writeTryBlock = tryBlock.body()._try();
+										JInvocation jMessageSerializerObj = serializeMethod.body().staticInvoke(jMessageSerializer, "getInstance").invoke("getSerializer").arg(JExpr.direct("propertyDescriptor.getPropertyType()"));
+										writeTryBlock.body().add(jMessageSerializerObj);
+										JInvocation write = jOut.invoke("writeBytes");
+										write.arg(jParam.invoke(readMethod.getName()));
+										writeTryBlock.body().add(write);
+									}
+
 								} // TODO add if propertyDescriptor.getPropertyType() instanceof
 									// MutableValue.class etc.
 
@@ -114,7 +161,13 @@ public class _ASerializerCodeGeneration {
 
 					}
 					// Generate the code
-					if (count > 0) {						
+					if (count > 0) {
+						// serialize
+						JStatement outFlush = jOut.invoke("flush");
+						tryBlock.body().add(outFlush);
+						tryBlock.body()._return(returnStatement);
+
+						// deserialize
 						deserializeMethod.body()._return(jClazzObj);
 						codeModel.build(new File("src/main/java/"));
 					}

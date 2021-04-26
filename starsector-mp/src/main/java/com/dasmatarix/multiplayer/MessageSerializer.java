@@ -9,6 +9,7 @@ import com.dasmatarix.multiplayer.exception.SerializerNotFoundException;
 import com.dasmatarix.multiplayer.serializer.ISerializer;
 import com.dasmatarix.util.Utils;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class MessageSerializer.
  *
@@ -17,24 +18,25 @@ public class MessageSerializer {
 
 	/**
 	 * The Constant HEADER_LENGTH. How many bytes long the header is. The header
-	 * should include the message length so we always know exactly how many
-	 * bytes to read to make one single message.
+	 * should include the message length so we always know exactly how many bytes to
+	 * read to make one single message.
 	 */
-	public static final int				HEADER_LENGTH	= 2
-	        * (Integer.SIZE / 8);
+	public static final int HEADER_LENGTH = 2 * (Integer.SIZE / 8);
 
 	/**
-	 * The class set. All classes that will be serialized have to be registered
-	 * here
+	 * The class set. All classes that will be serialized have to be registered here
 	 */
 	@SuppressWarnings("rawtypes")
-	protected Map<Integer, ISerializer>	register		= new HashMap<Integer, ISerializer>();
+	protected Map<Integer, ISerializer> register = new HashMap<Integer, ISerializer>();
 
 	/**
 	 * Instantiates a new message serializer with no registered serializers.
 	 */
-	public MessageSerializer() {
+	private MessageSerializer() {
 	}
+
+	/** The instance. */
+	private static MessageSerializer instance;
 
 	/**
 	 * Gets the header.
@@ -63,7 +65,7 @@ public class MessageSerializer {
 	/**
 	 * Deserialize.
 	 *
-	 * @param bytes the bytes
+	 * @param bytes    the bytes
 	 * @param hashCode the clazz
 	 * @return the object
 	 * @throws IOException                 Signals that an I/O exception has
@@ -71,19 +73,19 @@ public class MessageSerializer {
 	 * @throws SerializerNotFoundException the serializer not found exception
 	 */
 	@SuppressWarnings("rawtypes")
-	public Object deserialize(byte[] bytes, int hashCode)
-	        throws IOException, SerializerNotFoundException {
+	public Object deserialize(byte[] bytes, int hashCode) throws IOException, SerializerNotFoundException {
 		ISerializer serializer = register.get(hashCode);
 		if (serializer == null)
-			throw new SerializerNotFoundException("Serializer not found. Register a serializer for it on the server and the client before trying to deserialize an object of that type.");
+			throw new SerializerNotFoundException(
+					"Serializer not found. Register a serializer for it on the server and the client before trying to deserialize an object of that type.");
 		return serializer.deserialize(bytes);
 	}
 
 	/**
 	 * Register serializer.
 	 *
-	 * @param serializer the serializer
 	 * @param clazz      the clazz
+	 * @param serializer the serializer
 	 */
 	@SuppressWarnings("rawtypes")
 	public void register(Class clazz, ISerializer serializer) {
@@ -93,6 +95,7 @@ public class MessageSerializer {
 	/**
 	 * Gets the serializer.
 	 *
+	 * @param clazz the clazz
 	 * @return the serializer
 	 */
 	@SuppressWarnings("rawtypes")
@@ -103,21 +106,20 @@ public class MessageSerializer {
 	/**
 	 * Serialize.
 	 *
-	 * @param object the object
-	 * @param clazz  the clazz
+	 * @param object   the object
+	 * @param hashCode the hash code
 	 * @return the byte[]
 	 * @throws SerializerNotFoundException the serializer not found exception
 	 * @throws IOException                 Signals that an I/O exception has
 	 *                                     occurred.
 	 */
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	public byte[] serialize(Object object, int hashCode)
-	        throws SerializerNotFoundException, IOException {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public byte[] serialize(Object object, int hashCode) throws SerializerNotFoundException, IOException {
 
 		ISerializer serializer = register.get(hashCode);
 		if (serializer == null) {
 			throw new SerializerNotFoundException(
-			        "Serializer not found. Register a serializer of it's type for it on the server and the client before trying to serialize an object.");
+					"Serializer not found. Register a serializer of it's type for it on the server and the client before trying to serialize an object.");
 		}
 		return serializer.serialize(object);
 	}
@@ -135,6 +137,18 @@ public class MessageSerializer {
 		Utils.addIntToByteArray(messageBody.length, header, 0);
 		Utils.addIntToByteArray(clazz.getName().hashCode(), header, 4);
 		return header;
+	}
+
+	/**
+	 * Gets the single instance of MessageSerializer.
+	 *
+	 * @return single instance of MessageSerializer
+	 */
+	public static MessageSerializer getInstance() {
+		if (instance == null) {
+			instance = new MessageSerializer();
+		}
+		return instance;
 	}
 
 }

@@ -22,7 +22,7 @@ public class MessageManager {
 	 * The message serializer. This needs to be static as you should serialize a
 	 * class the same for any instance of MessageManager.
 	 */
-	private static MessageSerializer	serializer		= new MessageSerializer();
+	private static MessageSerializer	serializer		= MessageSerializer.getInstance();
 
 	/** The message handler. */
 	public MessageHandler				messageHandler	= new MessageHandler();

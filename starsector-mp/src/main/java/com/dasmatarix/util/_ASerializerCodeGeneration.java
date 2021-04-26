@@ -145,24 +145,21 @@ public class _ASerializerCodeGeneration {
 									write(propertyDescriptor.getPropertyType(), codeModel, jOut, jParam,
 											tryBlock.body(), jParam.invoke(readMethod.getName()), jSerializerNotFoundException,
 											jMessageSerializer, jISerializer);
-								} else if (readMethod != null
+								} else if (readMethod != null && !propertyDescriptor.getPropertyType().isPrimitive() 
 										&& Collection.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
 									// is a collection, convert to a fixed length array and write length, then bytes
-									System.out.println("FOUND A COLLECTION");
-									
-									
-									// collection
 									try {
+										
 										Field collectionField = clazz.getDeclaredField(propertyDescriptor.getName());
 								        ParameterizedType collectionType = (ParameterizedType) collectionField.getGenericType();
 								        Class<?> parameterClass = (Class<?>) collectionType.getActualTypeArguments()[0];
 								        Class<?> parameterArrayClass = java.lang.reflect.Array.newInstance(parameterClass, 0).getClass();
-								        JClass jComponent = codeModel.directClass(parameterArrayClass.getCanonicalName());
-								        
+								        JClass jComponent = codeModel.directClass(parameterClass.getCanonicalName());
+								        System.out.println("FOUND A COLLECTION");
 								        System.out.println(propertyDescriptor.getName() + " : "
 												+ propertyDescriptor.getPropertyType().getCanonicalName() + "<" + parameterClass.getSimpleName() +">");
 								        
-								        JExpression array = tryBlock.body().decl(jComponent, "arr", jParam.invoke(readMethod.getName()).invoke("toArray").arg("new " + parameterClass.getSimpleName() + "[0]"));
+								        JExpression array = tryBlock.body().decl(jComponent.array(), propertyDescriptor.getName() + "Array", jParam.invoke(readMethod.getName()).invoke("toArray").arg(JExpr.newArray(jComponent, 0)));
 										write(parameterArrayClass, codeModel, jOut, jParam,
 												tryBlock.body(), array, jSerializerNotFoundException,
 												jMessageSerializer, jISerializer);
@@ -276,7 +273,7 @@ public class _ASerializerCodeGeneration {
 			// TODO else if same type as obj class, i.e possible self reference, need to
 			// avoid self reference infinite loop
 			// TODO ?else detect infinite loop for A references B, B references A
-		} else if (clazz.getName().contains("$") || clazz.getCanonicalName().contains(clazz.getCanonicalName())) {
+		} else if (clazz.getName().contains("$")) {
 			// no inner classes
 			return;
 		} else if (clazz.getSimpleName().startsWith("new") || clazz.getSimpleName().startsWith("return")) {

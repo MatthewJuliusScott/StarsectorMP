@@ -25,11 +25,6 @@ public class CargoItemStackSerializer {
                 out.write(serializer.serialize(obj.getCargo()));
             } catch (SerializerNotFoundException _x) {
             }
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getData()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeBoolean(obj.isPickedUp());
             out.writeFloat(obj.getSize());
             out.flush();

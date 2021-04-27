@@ -22,11 +22,6 @@ public class FighterBlueprintOfferSerializer {
             out = new ObjectOutputStream(bos);
             out.writeBoolean(obj.isDone());
             try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getListInfoParam()));
-            } catch (SerializerNotFoundException _x) {
-            }
-            try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Long.class));
                 out.write(serializer.serialize(obj.getPlayerVisibleTimestamp()));
             } catch (SerializerNotFoundException _x) {

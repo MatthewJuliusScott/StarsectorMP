@@ -4,9 +4,6 @@ package com.generated.src.serializer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import com.dasmatarix.multiplayer.ISerializer;
-import com.dasmatarix.multiplayer.MessageSerializer;
-import com.dasmatarix.multiplayer.exception.SerializerNotFoundException;
 import com.fs.starfarer.api.impl.campaign.missions.hub.MissionTrigger.TriggerAction;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -28,11 +25,6 @@ public class MissionTriggerSerializer {
             Object[] stagesArray = obj.getStages().toArray(new Object[ 0 ] );
             out.writeInt(stagesArray.length);
             for (int i = 0; (i<stagesArray.length); i ++) {
-                try {
-                    ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                    out.write(serializer.serialize(stagesArray[i]));
-                } catch (SerializerNotFoundException _x) {
-                }
             }
             out.flush();
             return bos.toByteArray();

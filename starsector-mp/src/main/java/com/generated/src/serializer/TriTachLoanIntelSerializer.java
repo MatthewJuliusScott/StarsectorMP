@@ -20,11 +20,6 @@ public class TriTachLoanIntelSerializer {
         ObjectOutputStream out = null;
         try {
             out = new ObjectOutputStream(bos);
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getListInfoParam()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeBoolean(obj.isMajorLoan());
             try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Long.class));

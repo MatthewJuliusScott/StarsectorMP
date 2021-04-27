@@ -21,18 +21,8 @@ public class CampaignEventTargetSerializer {
         try {
             out = new ObjectOutputStream(bos);
             try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getCustom()));
-            } catch (SerializerNotFoundException _x) {
-            }
-            try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.api.campaign.SectorEntityToken.class));
                 out.write(serializer.serialize(obj.getEntity()));
-            } catch (SerializerNotFoundException _x) {
-            }
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getExtra()));
             } catch (SerializerNotFoundException _x) {
             }
             try {

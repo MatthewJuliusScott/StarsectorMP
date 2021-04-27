@@ -28,11 +28,6 @@ public class CommMessageSerializer {
             }
             out.writeUTF(obj.getChannel());
             try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getCustomData()));
-            } catch (SerializerNotFoundException _x) {
-            }
-            try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.util.Map.class));
                 out.write(serializer.serialize(obj.getCustomMap()));
             } catch (SerializerNotFoundException _x) {

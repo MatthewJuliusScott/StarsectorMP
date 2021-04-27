@@ -41,11 +41,6 @@ public class DisruptHeavyIndustrySerializer {
                 out.write(serializer.serialize(obj.getHub()));
             } catch (SerializerNotFoundException _x) {
             }
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getListInfoParam()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeUTF(obj.getMissionId());
             try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.api.campaign.RepLevel.class));
@@ -79,11 +74,6 @@ public class DisruptHeavyIndustrySerializer {
             }
             out.writeFloat(obj.getQuality());
             out.writeFloat(obj.getRewardMult());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getStartingStage()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.flush();
             return bos.toByteArray();
         } finally {

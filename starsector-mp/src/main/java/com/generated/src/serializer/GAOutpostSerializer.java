@@ -41,11 +41,6 @@ public class GAOutpostSerializer {
                 out.write(serializer.serialize(obj.getHub()));
             } catch (SerializerNotFoundException _x) {
             }
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getListInfoParam()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeUTF(obj.getMissionId());
             out.writeUTF(obj.getName());
             try {
@@ -80,11 +75,6 @@ public class GAOutpostSerializer {
             }
             out.writeFloat(obj.getQuality());
             out.writeFloat(obj.getRewardMult());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getStartingStage()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.flush();
             return bos.toByteArray();
         } finally {

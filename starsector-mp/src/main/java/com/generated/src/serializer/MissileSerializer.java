@@ -73,11 +73,6 @@ public class MissileSerializer {
             }
             out.writeBoolean(obj.isNoMineFFConcerns());
             out.writeInt(obj.getOwner());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getParamAboutToApplyDamage()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeBoolean(obj.isRenderGlowAbove());
             out.writeFloat(obj.getTimeSinceFizzling());
             out.writeFloat(obj.getUntilMineExplosion());

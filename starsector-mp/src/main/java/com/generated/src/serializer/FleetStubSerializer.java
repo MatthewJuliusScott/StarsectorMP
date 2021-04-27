@@ -34,11 +34,6 @@ public class FleetStubSerializer {
             } catch (SerializerNotFoundException _x) {
             }
             out.writeUTF(obj.getId());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.lang.Object.class));
-                out.write(serializer.serialize(obj.getParams()));
-            } catch (SerializerNotFoundException _x) {
-            }
             EveryFrameScript[] scriptsArray = obj.getScripts().toArray(new EveryFrameScript[ 0 ] );
             out.writeInt(scriptsArray.length);
             for (int i = 0; (i<scriptsArray.length); i ++) {

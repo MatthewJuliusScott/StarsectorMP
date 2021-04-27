@@ -134,6 +134,7 @@ public class _ASerializerCodeGeneration {
 									write(propertyDescriptor.getPropertyType(), codeModel, jOut, jParam,
 											tryBlock.body(), jParam.invoke(readMethod.getName()), jSerializerNotFoundException,
 											jMessageSerializer, jISerializer);
+									count++;
 								} else if (readMethod != null && !propertyDescriptor.getPropertyType().isPrimitive() 
 										&& Collection.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
 									// is a collection, convert to a fixed length array and write length, then bytes
@@ -152,11 +153,10 @@ public class _ASerializerCodeGeneration {
 										write(parameterArrayClass, codeModel, jOut, jParam,
 												tryBlock.body(), array, jSerializerNotFoundException,
 												jMessageSerializer, jISerializer);
+										count++;
 									} catch (Exception e3) {
 									}									
 								}
-
-								count++;
 							}
 						} catch (Exception | ExceptionInInitializerError | NoClassDefFoundError e2) {
 							// do nothing
@@ -300,7 +300,8 @@ public class _ASerializerCodeGeneration {
 			// TODO else if same type as obj class, i.e possible self reference, need to
 			// avoid self reference infinite loop
 			// TODO ?else detect infinite loop for A references B, B references A
-			
+		} else if (clazz.equals(Object.class)) {
+			return;	
 		} else if (clazz.getName().contains("$")) {
 			// no inner classes
 			return;

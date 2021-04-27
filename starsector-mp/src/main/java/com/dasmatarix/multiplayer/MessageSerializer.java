@@ -99,7 +99,18 @@ public class MessageSerializer {
 	 */
 	@SuppressWarnings("rawtypes")
 	public ISerializer getSerializer(Class clazz) throws SerializerNotFoundException {
-		ISerializer serializer = register.get(clazz.getName().hashCode());
+		return getSerializer(clazz.getName().hashCode());
+	}
+	
+	/**
+	 * Gets the serializer.
+	 *
+	 * @param clazz the clazz
+	 * @return the serializer
+	 */
+	@SuppressWarnings("rawtypes")
+	public ISerializer getSerializer(int hashCode) throws SerializerNotFoundException {
+		ISerializer serializer = register.get(hashCode);
 		if (serializer == null) {
 			throw new SerializerNotFoundException(
 					"Serializer not found. Register a serializer of it's type for it on the server and the client before trying to serialize an object.");
@@ -117,15 +128,9 @@ public class MessageSerializer {
 	 * @throws IOException                 Signals that an I/O exception has
 	 *                                     occurred.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	public byte[] serialize(Object object, int hashCode) throws SerializerNotFoundException, IOException {
-
-		ISerializer serializer = register.get(hashCode);
-		if (serializer == null) {
-			throw new SerializerNotFoundException(
-					"Serializer not found. Register a serializer of it's type for it on the server and the client before trying to serialize an object.");
-		}
-		return serializer.serialize(object);
+		return getSerializer(hashCode).serialize(object);
 	}
 
 	/**

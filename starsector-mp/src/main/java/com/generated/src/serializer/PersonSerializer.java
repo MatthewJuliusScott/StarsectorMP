@@ -44,11 +44,6 @@ public class PersonSerializer {
                 out.write(serializer.serialize(obj.getName()));
             } catch (SerializerNotFoundException _x) {
             }
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.rpg.A.class));
-                out.write(serializer.serialize(obj.getPersonality()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeUTF(obj.getPortraitSprite());
             out.writeUTF(obj.getPostId());
             out.writeUTF(obj.getRankId());

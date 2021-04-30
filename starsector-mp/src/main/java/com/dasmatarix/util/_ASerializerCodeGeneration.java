@@ -262,9 +262,15 @@ public class _ASerializerCodeGeneration {
 	 */
 	public static void main(String[] args) throws Exception {
 		classBlacklist.add("A");
+		classBlacklist.add("B");
 		classBlacklist.add("C");
 		classBlacklist.add("D");
-
+		classBlacklist.add("o0OO");
+		classBlacklist.add("O0OO");
+		classBlacklist.add("oOOO");
+		classBlacklist.add("O00O");
+		classBlacklist.add(
+				"o00OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer", null, DoNotObfuscate.class);
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer.api", null, Object.class);
 		Set<Map.Entry<Class, Class>> entrySet = classesToSerialize.entrySet();
@@ -356,7 +362,8 @@ public class _ASerializerCodeGeneration {
 			return;
 		} else if (clazz.getName().contains("$") || classBlacklist.contains(clazz.getSimpleName())
 				|| reservedWords.contains(clazz.getSimpleName())) {
-			// no inner classes, blacklisted classes, or reserved word classes (excluding primitives already handled)
+			// no inner classes, blacklisted classes, or reserved word classes (excluding
+			// primitives already handled)
 			return;
 		} else if (clazz.getName() == null) {
 			return;

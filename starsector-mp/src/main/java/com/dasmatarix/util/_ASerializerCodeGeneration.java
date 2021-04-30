@@ -61,7 +61,6 @@ public class _ASerializerCodeGeneration {
 			"enum", "instanceof", "return", "transient", "catch", "extends", "int", "short", "try", "char", "final",
 			"interface", "static", "void", "class", "finally", "long", "strictfp", "volatile", "const", "float",
 			"native", "super", "while"));
-	}
 
 	private static void generateSerializer(String _package, Class specificClass, Class subTypeOf) {
 		try {

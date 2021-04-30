@@ -10,9 +10,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -41,9 +45,13 @@ import com.sun.codemodel.JVar;
  * The Class _ASerializerCodeGeneration.
  */
 public class _ASerializerCodeGeneration {
-	
+
+	private static Set<String> serializedClasses = new HashSet<String>();
+
 	private static Map<JClass, JDefinedClass> classSerializerMap = new HashMap<JClass, JDefinedClass>();
-	
+
+	private static ConcurrentMap<Class, Class> classesToSerialize = new ConcurrentHashMap<Class, Class>();
+
 	private static void generateSerializer(String _package, Class specificClass, Class subTypeOf) {
 		try {
 			Reflections reflections = new Reflections(_package, new SubTypesScanner(false));
@@ -92,10 +100,10 @@ public class _ASerializerCodeGeneration {
 							JExpr._new(jByteArrayOutputStream));
 					JVar jOut = serializeMethod.body().decl(jObjectOutputStream, "out", JExpr._null());
 					JTryBlock tryBlock = serializeMethod.body()._try();
-					
+
 					// initialize out inside try block
 					tryBlock.body().assign(jOut, JExpr._new(jObjectOutputStream).arg(jBos));
-					
+
 					JExpression returnStatement = jBos.invoke("toByteArray");
 
 					JBlock finallyBlock = tryBlock._finally();
@@ -132,30 +140,35 @@ public class _ASerializerCodeGeneration {
 									System.out.println("        " + writeMethod.getName());
 
 									write(propertyDescriptor.getPropertyType(), codeModel, jOut, jParam,
-											tryBlock.body(), jParam.invoke(readMethod.getName()), jSerializerNotFoundException,
-											jMessageSerializer, jISerializer);
+											tryBlock.body(), jParam.invoke(readMethod.getName()),
+											jSerializerNotFoundException, jMessageSerializer, jISerializer);
 									count++;
-								} else if (readMethod != null && !propertyDescriptor.getPropertyType().isPrimitive() 
+								} else if (readMethod != null && !propertyDescriptor.getPropertyType().isPrimitive()
 										&& Collection.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
 									// is a collection, convert to a fixed length array and write length, then bytes
 									try {
-										
+
 										Field collectionField = clazz.getDeclaredField(propertyDescriptor.getName());
-								        ParameterizedType collectionType = (ParameterizedType) collectionField.getGenericType();
-								        Class<?> parameterClass = (Class<?>) collectionType.getActualTypeArguments()[0];
-								        Class<?> parameterArrayClass = java.lang.reflect.Array.newInstance(parameterClass, 0).getClass();
-								        JClass jComponent = codeModel.directClass(parameterClass.getCanonicalName());
-								        System.out.println("FOUND A COLLECTION");
-								        System.out.println(propertyDescriptor.getName() + " : "
-												+ propertyDescriptor.getPropertyType().getCanonicalName() + "<" + parameterClass.getSimpleName() +">");
-								        
-								        JExpression array = tryBlock.body().decl(jComponent.array(), propertyDescriptor.getName() + "Array", jParam.invoke(readMethod.getName()).invoke("toArray").arg(JExpr.newArray(jComponent, 0)));
-										write(parameterArrayClass, codeModel, jOut, jParam,
-												tryBlock.body(), array, jSerializerNotFoundException,
-												jMessageSerializer, jISerializer);
+										ParameterizedType collectionType = (ParameterizedType) collectionField
+												.getGenericType();
+										Class<?> parameterClass = (Class<?>) collectionType.getActualTypeArguments()[0];
+										Class<?> parameterArrayClass = java.lang.reflect.Array
+												.newInstance(parameterClass, 0).getClass();
+										JClass jComponent = codeModel.directClass(parameterClass.getCanonicalName());
+										System.out.println("FOUND A COLLECTION");
+										System.out.println(propertyDescriptor.getName() + " : "
+												+ propertyDescriptor.getPropertyType().getCanonicalName() + "<"
+												+ parameterClass.getSimpleName() + ">");
+
+										JExpression array = tryBlock.body().decl(jComponent.array(),
+												propertyDescriptor.getName() + "Array",
+												jParam.invoke(readMethod.getName()).invoke("toArray")
+														.arg(JExpr.newArray(jComponent, 0)));
+										write(parameterArrayClass, codeModel, jOut, jParam, tryBlock.body(), array,
+												jSerializerNotFoundException, jMessageSerializer, jISerializer);
 										count++;
 									} catch (Exception e3) {
-									}									
+									}
 								}
 							}
 						} catch (Exception | ExceptionInInitializerError | NoClassDefFoundError e2) {
@@ -173,7 +186,23 @@ public class _ASerializerCodeGeneration {
 						// deserialize
 						deserializeMethod.body()._return(jClazzObj);
 						classSerializerMap.put(jClazz, jdefinedClass);
+						serializedClasses.add(clazz.getCanonicalName());
 						codeModel.build(new File("src/main/java/"));
+					} else {
+						// there was nothing generated, create a dummy serializer for a NOP
+						JCodeModel dummyCodeModel = new JCodeModel();
+						jPackage = dummyCodeModel._package("com.generated.src.serializer.dummy");
+						jdefinedClass = jPackage._class(className + "DummySerializer");
+						serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
+						serializeMethod._throws(jIOException);
+						jParam = serializeMethod.param(clazz, "obj");
+						serializeMethod.body().directStatement("return new byte[0];");
+
+						deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
+						deserializeMethod.body().directStatement("return null;");
+						classSerializerMap.put(jClazz, jdefinedClass);
+						serializedClasses.add(clazz.getCanonicalName());
+						dummyCodeModel.build(new File("src/main/java/"));
 					}
 				} catch (IllegalArgumentException | IntrospectionException | NoClassDefFoundError | SecurityException
 						| ExceptionInInitializerError | InstantiationError | JClassAlreadyExistsException
@@ -192,13 +221,13 @@ public class _ASerializerCodeGeneration {
 	private static void generateSerializerManager() throws IOException, JClassAlreadyExistsException {
 		JCodeModel codeModel = new JCodeModel();
 		JPackage jPackage = codeModel._package("com.generated.src");
-		JDefinedClass jdefinedClass = jPackage._class("AutoGeneratedSerializerManager");
+		JDefinedClass jdefinedClass = jPackage._class("_AutoGeneratedSerializerManager");
 		JClass jMapClass = codeModel.directClass("java.util.Map");
 		JClass jHashMapClass = codeModel.directClass("java.util.HashMap");
 		JClass jISerializer = codeModel.directClass("com.dasmatarix.multiplayer.ISerializer");
-		
+
 		// Class, ISerializer
-		
+
 		JMethod jMethod = jdefinedClass.method(JMod.PUBLIC + JMod.STATIC, jMapClass, "getSerializers");
 		jMethod.generify("Class");
 		jMethod.generify(jISerializer.name());
@@ -208,12 +237,12 @@ public class _ASerializerCodeGeneration {
 			JInvocation jPut = jObj.invoke("put").arg(entry.getKey().dotclass()).arg(JExpr._new(entry.getValue()));
 			jMethod.body().add(jPut);
 		}
-		
+
 		jMethod.body()._return(jObj);
-		
+
 		codeModel.build(new File("src/main/java/"));
 	}
-	
+
 	/**
 	 * The main method.
 	 *
@@ -223,7 +252,15 @@ public class _ASerializerCodeGeneration {
 	public static void main(String[] args) throws Exception {
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer", null, DoNotObfuscate.class);
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer.api", null, Object.class);
+		Set<Map.Entry<Class, Class>> entrySet = classesToSerialize.entrySet();
+		Iterator<Map.Entry<Class, Class>> iterator = entrySet.iterator();
+		while (iterator.hasNext()) {
+			Class clazz = iterator.next().getKey();
+			iterator.remove();
+				_ASerializerCodeGeneration.generateSerializer(clazz.getPackage().getName(), clazz, Object.class);
+		}
 		_ASerializerCodeGeneration.generateSerializerManager();
+		System.out.println("DONE");
 	}
 
 	/**
@@ -301,11 +338,11 @@ public class _ASerializerCodeGeneration {
 			// avoid self reference infinite loop
 			// TODO ?else detect infinite loop for A references B, B references A
 		} else if (clazz.equals(Object.class)) {
-			return;	
+			return;
 		} else if (clazz.getName().contains("$")) {
 			// no inner classes
 			return;
-		} else if (clazz.getSimpleName().startsWith("new") || clazz.getSimpleName().startsWith("return")) {
+		} else if (clazz.getSimpleName().equals("new") || clazz.getSimpleName().equals("return") || clazz.getSimpleName().equals("class")) {
 			return;
 		} else if (clazz.getName() == null) {
 			return;
@@ -322,6 +359,12 @@ public class _ASerializerCodeGeneration {
 			JInvocation write = jOut.invoke("write");
 			write.arg(jISerializerObj.invoke("serialize").arg(expression));
 			writeTryBlock.body().add(write);
+
+			// try and create the serializer in case its not in one of the scanned packages
+			if (!serializedClasses.contains(clazz.getCanonicalName())) {
+				classesToSerialize.put(clazz, clazz);
+			}
+
 		}
 	}
 }

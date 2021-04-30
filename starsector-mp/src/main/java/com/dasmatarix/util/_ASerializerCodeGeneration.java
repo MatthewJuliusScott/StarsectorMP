@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,9 +49,19 @@ public class _ASerializerCodeGeneration {
 
 	private static Set<String> serializedClasses = new HashSet<String>();
 
+	public static Set<String> classBlacklist = new HashSet<String>();
+
 	private static Map<JClass, JDefinedClass> classSerializerMap = new HashMap<JClass, JDefinedClass>();
 
 	private static ConcurrentMap<Class, Class> classesToSerialize = new ConcurrentHashMap<Class, Class>();
+
+	public static Set<String> reservedWords = new HashSet<String>(Arrays.asList("abstract", "continue", "for", "new",
+			"switch", "assert", "default", "goto", "package", "synchronized", "boolean", "do", "if", "private", "this",
+			"break", "double", "implements", "protected", "throw", "byte", "else", "import", "public", "throws", "case",
+			"enum", "instanceof", "return", "transient", "catch", "extends", "int", "short", "try", "char", "final",
+			"interface", "static", "void", "class", "finally", "long", "strictfp", "volatile", "const", "float",
+			"native", "super", "while"));
+	}
 
 	private static void generateSerializer(String _package, Class specificClass, Class subTypeOf) {
 		try {
@@ -58,7 +69,8 @@ public class _ASerializerCodeGeneration {
 			Set<Class<? extends Object>> types = reflections.getSubTypesOf(subTypeOf);
 
 			for (Class clazz : types) {
-				if (clazz.getName().contains("$")) {
+				if (clazz.getName().contains("$") || classBlacklist.contains(clazz.getSimpleName())
+						|| reservedWords.contains(clazz.getSimpleName())) {
 					continue;
 				}
 				JCodeModel codeModel = new JCodeModel();
@@ -250,6 +262,10 @@ public class _ASerializerCodeGeneration {
 	 * @throws Exception the exception
 	 */
 	public static void main(String[] args) throws Exception {
+		classBlacklist.add("A");
+		classBlacklist.add("C");
+		classBlacklist.add("D");
+
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer", null, DoNotObfuscate.class);
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer.api", null, Object.class);
 		Set<Map.Entry<Class, Class>> entrySet = classesToSerialize.entrySet();
@@ -257,7 +273,7 @@ public class _ASerializerCodeGeneration {
 		while (iterator.hasNext()) {
 			Class clazz = iterator.next().getKey();
 			iterator.remove();
-				_ASerializerCodeGeneration.generateSerializer(clazz.getPackage().getName(), clazz, Object.class);
+			_ASerializerCodeGeneration.generateSerializer(clazz.getPackage().getName(), clazz, Object.class);
 		}
 		_ASerializerCodeGeneration.generateSerializerManager();
 		System.out.println("DONE");
@@ -339,10 +355,9 @@ public class _ASerializerCodeGeneration {
 			// TODO ?else detect infinite loop for A references B, B references A
 		} else if (clazz.equals(Object.class)) {
 			return;
-		} else if (clazz.getName().contains("$")) {
-			// no inner classes
-			return;
-		} else if (clazz.getSimpleName().equals("new") || clazz.getSimpleName().equals("return") || clazz.getSimpleName().equals("class")) {
+		} else if (clazz.getName().contains("$") || classBlacklist.contains(clazz.getSimpleName())
+				|| reservedWords.contains(clazz.getSimpleName())) {
+			// no inner classes, blacklisted classes, or reserved word classes (excluding primitives already handled)
 			return;
 		} else if (clazz.getName() == null) {
 			return;

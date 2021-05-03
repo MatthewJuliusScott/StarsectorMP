@@ -35,11 +35,6 @@ public class MissileSerializer {
             } catch (SerializerNotFoundException _x) {
             }
             out.writeFloat(obj.getCollisionRadius());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.combat.E.F.class));
-                out.write(serializer.serialize(obj.getDamage()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeFloat(obj.getEccmChanceBonus());
             out.writeFloat(obj.getEccmChanceOverride());
             out.writeInt(obj.getEmpResistance());
@@ -84,6 +79,13 @@ public class MissileSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getHullSize().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getSpawnLocation().writeObject();
+        return obj.getSpawnType().writeObject();
+        return obj.getTailEnd().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.Missile deserialize() {

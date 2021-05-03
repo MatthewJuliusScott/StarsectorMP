@@ -26,6 +26,9 @@ public class MutableStatSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getFlatMods().writeObject();
+        return obj.getMultMods().writeObject();
+        return obj.getPercentMods().writeObject();
     }
 
     public com.fs.starfarer.api.combat.MutableStat deserialize() {

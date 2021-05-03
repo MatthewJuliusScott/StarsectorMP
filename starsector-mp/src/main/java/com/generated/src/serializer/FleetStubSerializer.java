@@ -51,6 +51,8 @@ public class FleetStubSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getLocation().writeObject();
+        return obj.getLocationInHyperspace().writeObject();
     }
 
     public com.fs.starfarer.campaign.fleet.FleetStub deserialize() {

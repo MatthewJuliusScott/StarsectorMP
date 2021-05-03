@@ -22,10 +22,6 @@ public class MissionTriggerSerializer {
             out.writeInt(actionsArray.length);
             for (int i = 0; (i<actionsArray.length); i ++) {
             }
-            Object[] stagesArray = obj.getStages().toArray(new Object[ 0 ] );
-            out.writeInt(stagesArray.length);
-            for (int i = 0; (i<stagesArray.length); i ++) {
-            }
             out.flush();
             return bos.toByteArray();
         } finally {
@@ -34,6 +30,7 @@ public class MissionTriggerSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getStages().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.missions.hub.MissionTrigger deserialize() {

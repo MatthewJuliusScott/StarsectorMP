@@ -61,6 +61,10 @@ public class FleetMemberSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getHullId().writeObject();
+        return obj.getShortName().writeObject();
+        return obj.getSpecId().writeObject();
+        return obj.getType().writeObject();
     }
 
     public com.fs.starfarer.campaign.fleet.FleetMember deserialize() {

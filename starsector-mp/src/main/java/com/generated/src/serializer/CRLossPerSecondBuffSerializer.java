@@ -27,6 +27,7 @@ public class CRLossPerSecondBuffSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.terrain.CRLossPerSecondBuff deserialize() {

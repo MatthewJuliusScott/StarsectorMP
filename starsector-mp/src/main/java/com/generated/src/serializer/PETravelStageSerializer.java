@@ -26,6 +26,7 @@ public class PETravelStageSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getStatus().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.punitive.PETravelStage deserialize() {

@@ -30,6 +30,10 @@ public class TerrainGenDataSpecSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCategory().writeObject();
+        return obj.getId().writeObject();
+        return obj.getMaxColor().writeObject();
+        return obj.getMinColor().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.procgen.TerrainGenDataSpec deserialize() {

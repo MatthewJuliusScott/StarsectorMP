@@ -29,22 +29,7 @@ public class GenericGridViewContentSerializer {
             } catch (SerializerNotFoundException _x) {
             }
             out.writeFloat(obj.getOpacity());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.ui.oO00OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO.class));
-                out.write(serializer.serialize(obj.getParent()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeInt(obj.getRows());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.ui.U.class));
-                out.write(serializer.serialize(obj.getTooltipLogic()));
-            } catch (SerializerNotFoundException _x) {
-            }
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.ui.U.class));
-                out.write(serializer.serialize(obj.getTooltipLogicResetDelegate()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.flush();
             return bos.toByteArray();
         } finally {

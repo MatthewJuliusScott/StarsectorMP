@@ -26,6 +26,10 @@ public class GoDarkAbilitySerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getCooldownColor().writeObject();
+        return obj.getId().writeObject();
+        return obj.getModId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.abilities.GoDarkAbility deserialize() {

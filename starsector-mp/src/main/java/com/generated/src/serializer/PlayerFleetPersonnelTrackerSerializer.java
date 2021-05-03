@@ -30,6 +30,7 @@ public class PlayerFleetPersonnelTrackerSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getIconName().writeObject();
     }
 
     public com.fs.starfarer.api.impl.PlayerFleetPersonnelTracker deserialize() {

@@ -85,6 +85,7 @@ public class CommMessageSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getId().writeObject();
     }
 
     public com.fs.starfarer.campaign.comms.CommMessage deserialize() {

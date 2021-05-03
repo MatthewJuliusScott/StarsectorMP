@@ -28,6 +28,13 @@ public class MilitarySubmarketPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBuyVerb().writeObject();
+        return obj.getPlayerEconomyImpactMode().writeObject();
+        return obj.getSellVerb().writeObject();
+        return obj.getTariffTextOverride().writeObject();
+        return obj.getTariffValueOverride().writeObject();
+        return obj.getTotalTextOverride().writeObject();
+        return obj.getTotalValueOverride().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.submarkets.MilitarySubmarketPlugin deserialize() {

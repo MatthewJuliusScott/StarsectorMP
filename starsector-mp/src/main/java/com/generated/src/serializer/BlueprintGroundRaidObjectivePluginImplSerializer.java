@@ -50,6 +50,11 @@ public class BlueprintGroundRaidObjectivePluginImplSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCommodityIdForDeficitIcons().writeObject();
+        return obj.getDisruptedAlreadyString().writeObject();
+        return obj.getIconName().writeObject();
+        return obj.getName().writeObject();
+        return obj.getSourceString().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.graid.BlueprintGroundRaidObjectivePluginImpl deserialize() {

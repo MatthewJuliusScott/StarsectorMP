@@ -43,6 +43,11 @@ public class TradeFleetDepartureIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getCommMessageSound().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getSortString().writeObject();
+        return obj.getSortTier().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.misc.TradeFleetDepartureIntel deserialize() {

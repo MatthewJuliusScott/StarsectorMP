@@ -26,6 +26,8 @@ public class BaseMarketConditionPlugin2Serializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getHighlightColors().writeObject();
+        return obj.getHighlights().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.econ.BaseMarketConditionPlugin2 deserialize() {

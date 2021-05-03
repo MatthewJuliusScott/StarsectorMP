@@ -27,6 +27,7 @@ public class MarketConnectionSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getId().writeObject();
     }
 
     public com.fs.starfarer.campaign.econ.MarketConnection deserialize() {

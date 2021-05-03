@@ -35,6 +35,7 @@ public class ContrailParticleSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getColor().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.ContrailParticle deserialize() {

@@ -35,6 +35,7 @@ public class SmoothParticleSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getColor().writeObject();
     }
 
     public com.fs.graphics.particle.SmoothParticle deserialize() {

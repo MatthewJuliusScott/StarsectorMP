@@ -28,6 +28,8 @@ public class SmoothMovementModuleSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getLocation().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.campaign.fleet.SmoothMovementModule deserialize() {

@@ -85,6 +85,10 @@ public class HullVariantSpecSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getSMods().writeObject();
+        return obj.getDisplayName().writeObject();
+        return obj.getVariantFilePath().writeObject();
+        return obj.getWingTypeDesignationForFighter().writeObject();
     }
 
     public com.fs.starfarer.loading.specs.HullVariantSpec deserialize() {

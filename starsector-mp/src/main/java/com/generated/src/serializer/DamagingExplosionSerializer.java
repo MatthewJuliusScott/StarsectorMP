@@ -51,6 +51,13 @@ public class DamagingExplosionSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getProjectileSpecId().writeObject();
+        return obj.getSpawnLocation().writeObject();
+        return obj.getSpawnType().writeObject();
+        return obj.getTailEnd().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.DamagingExplosion deserialize() {

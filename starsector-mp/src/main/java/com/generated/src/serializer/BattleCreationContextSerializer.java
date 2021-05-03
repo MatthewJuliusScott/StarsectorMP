@@ -35,6 +35,8 @@ public class BattleCreationContextSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getOtherGoal().writeObject();
+        return obj.getPlayerGoal().writeObject();
     }
 
     public com.fs.starfarer.api.combat.BattleCreationContext deserialize() {

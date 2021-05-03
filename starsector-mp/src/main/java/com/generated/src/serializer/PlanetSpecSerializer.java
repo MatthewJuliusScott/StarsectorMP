@@ -93,6 +93,11 @@ public class PlanetSpecSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getAOrAn().writeObject();
+        return obj.getIconTexture().writeObject();
+        return obj.getLightPosition().writeObject();
+        return obj.getName().writeObject();
+        return obj.getPlanetType().writeObject();
     }
 
     public com.fs.starfarer.loading.specs.PlanetSpec deserialize() {

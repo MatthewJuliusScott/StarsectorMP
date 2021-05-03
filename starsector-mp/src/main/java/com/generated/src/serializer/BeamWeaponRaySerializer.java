@@ -36,11 +36,6 @@ public class BeamWeaponRaySerializer {
                 out.write(serializer.serialize(obj.getCoreColor()));
             } catch (SerializerNotFoundException _x) {
             }
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.combat.E.F.class));
-                out.write(serializer.serialize(obj.getDamage()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeBoolean(obj.isDarkCore());
             try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((java.awt.Color.class));
@@ -67,6 +62,12 @@ public class BeamWeaponRaySerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getFrom().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getRayEndPrevFrame().writeObject();
+        return obj.getTo().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.BeamWeaponRay deserialize() {

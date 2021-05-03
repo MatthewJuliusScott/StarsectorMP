@@ -33,6 +33,8 @@ public class CampaignShipEngineGlowSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getColor().writeObject();
+        return obj.getContrailColor().writeObject();
     }
 
     public com.fs.starfarer.campaign.fleet.CampaignShipEngineGlow deserialize() {

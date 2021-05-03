@@ -48,6 +48,9 @@ public class AsteroidSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.terrain.Asteroid deserialize() {

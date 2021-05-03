@@ -34,6 +34,7 @@ public class RelationshipSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getRelColor().writeObject();
     }
 
     public com.fs.starfarer.campaign.Relationship deserialize() {

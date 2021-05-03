@@ -26,6 +26,8 @@ public class ShippingDisruptionSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getHighlightColors().writeObject();
+        return obj.getHighlights().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.econ.ShippingDisruption deserialize() {

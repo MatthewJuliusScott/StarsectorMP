@@ -52,6 +52,7 @@ public class PlayerMarketTransactionSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getTradeMode().writeObject();
     }
 
     public com.fs.starfarer.api.campaign.PlayerMarketTransaction deserialize() {

@@ -51,6 +51,15 @@ public class BattleObjectiveSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getDisplayName().writeObject();
+        return obj.getDisplayNameForTask().writeObject();
+        return obj.getImportance().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getLocationName().writeObject();
+        return obj.getTargetSize().writeObject();
+        return obj.getType().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.BattleObjective deserialize() {

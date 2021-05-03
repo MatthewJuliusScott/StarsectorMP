@@ -28,6 +28,7 @@ public class DescriptionSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getText1FirstPara().writeObject();
     }
 
     public com.fs.starfarer.api.loading.Description deserialize() {

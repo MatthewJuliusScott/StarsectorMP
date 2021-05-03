@@ -30,6 +30,10 @@ public class StarGenDataSpecSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getAge().writeObject();
+        return obj.getId().writeObject();
+        return obj.getLightColorMax().writeObject();
+        return obj.getLightColorMin().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.procgen.StarGenDataSpec deserialize() {

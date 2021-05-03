@@ -33,6 +33,12 @@ public class BaseInstallableIndustryItemPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getMenuItemTitle().writeObject();
+        return obj.getNoItemCurrentlyInstalledText().writeObject();
+        return obj.getNoItemsAvailableText().writeObject();
+        return obj.getNoItemsAvailableTextRemote().writeObject();
+        return obj.getSelectItemToAssignToIndustryText().writeObject();
+        return obj.getUninstallButtonText().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.econ.impl.BaseInstallableIndustryItemPlugin deserialize() {

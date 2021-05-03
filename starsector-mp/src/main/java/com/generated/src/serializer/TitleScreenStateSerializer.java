@@ -26,6 +26,9 @@ public class TitleScreenStateSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getID().writeObject();
+        return obj.getDialogType().writeObject();
+        return obj.getNextState().writeObject();
     }
 
     public com.fs.starfarer.title.TitleScreenState deserialize() {

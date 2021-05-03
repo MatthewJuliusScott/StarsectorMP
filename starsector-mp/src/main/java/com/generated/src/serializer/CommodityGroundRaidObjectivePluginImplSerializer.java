@@ -51,6 +51,9 @@ public class CommodityGroundRaidObjectivePluginImplSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getDisruptedAlreadyString().writeObject();
+        return obj.getIconName().writeObject();
+        return obj.getSourceString().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.graid.CommodityGroundRaidObjectivePluginImpl deserialize() {

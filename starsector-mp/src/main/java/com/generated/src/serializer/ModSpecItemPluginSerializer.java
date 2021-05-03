@@ -26,6 +26,8 @@ public class ModSpecItemPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getDesignType().writeObject();
+        return obj.getModId().writeObject();
     }
 
     public com.fs.starfarer.api.campaign.impl.items.ModSpecItemPlugin deserialize() {

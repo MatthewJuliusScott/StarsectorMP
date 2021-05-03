@@ -71,6 +71,7 @@ public class BaseLocationSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getLocation().writeObject();
     }
 
     public com.fs.starfarer.campaign.BaseLocation deserialize() {

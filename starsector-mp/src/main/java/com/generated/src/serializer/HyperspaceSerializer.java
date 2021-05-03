@@ -36,6 +36,7 @@ public class HyperspaceSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getLocation().writeObject();
     }
 
     public com.fs.starfarer.campaign.Hyperspace deserialize() {

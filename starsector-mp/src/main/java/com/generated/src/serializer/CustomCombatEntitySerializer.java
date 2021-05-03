@@ -46,6 +46,8 @@ public class CustomCombatEntitySerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getLocation().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.CustomCombatEntity deserialize() {

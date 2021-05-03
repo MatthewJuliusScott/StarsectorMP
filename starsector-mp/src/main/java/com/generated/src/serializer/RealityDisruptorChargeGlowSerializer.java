@@ -27,6 +27,7 @@ public class RealityDisruptorChargeGlowSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
     }
 
     public com.fs.starfarer.api.impl.combat.RealityDisruptorChargeGlow deserialize() {

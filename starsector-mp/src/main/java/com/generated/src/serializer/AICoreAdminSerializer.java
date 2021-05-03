@@ -26,6 +26,8 @@ public class AICoreAdminSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getHighlightColors().writeObject();
+        return obj.getHighlights().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.econ.AICoreAdmin deserialize() {

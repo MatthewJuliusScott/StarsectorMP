@@ -51,6 +51,13 @@ public class HegemonyInspectionIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getName().writeObject();
+        return obj.getRandom().writeObject();
+        return obj.getRouteSourceId().writeObject();
+        return obj.getSmallDescriptionTitle().writeObject();
+        return obj.getSortString().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.inspection.HegemonyInspectionIntel deserialize() {

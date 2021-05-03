@@ -26,6 +26,16 @@ public class RecentUnrestEventSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCurrentImage().writeObject();
+        return obj.getCurrentMessageIcon().writeObject();
+        return obj.getEventCategory().writeObject();
+        return obj.getEventIcon().writeObject();
+        return obj.getEventType().writeObject();
+        return obj.getStageIdForLikely().writeObject();
+        return obj.getStageIdForPossible().writeObject();
+        return obj.getStatModId().writeObject();
+        return obj.getWarningWhenLikelyPriority().writeObject();
+        return obj.getWarningWhenPossiblePriority().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.events.RecentUnrestEvent deserialize() {

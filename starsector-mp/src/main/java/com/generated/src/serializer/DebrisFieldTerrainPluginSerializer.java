@@ -27,6 +27,10 @@ public class DebrisFieldTerrainPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getEffectCategory().writeObject();
+        return obj.getModId().writeObject();
+        return obj.getTerrainId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.terrain.DebrisFieldTerrainPlugin deserialize() {

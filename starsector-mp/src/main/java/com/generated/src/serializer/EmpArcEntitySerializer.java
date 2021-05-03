@@ -47,6 +47,10 @@ public class EmpArcEntitySerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getTargetLocation().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.systems.EmpArcEntity deserialize() {

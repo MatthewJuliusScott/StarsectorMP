@@ -49,6 +49,12 @@ public class SurveyPlanetMissionIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getCommMessageSound().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getPostfixForState().writeObject();
+        return obj.getSortString().writeObject();
+        return obj.getSortTier().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.SurveyPlanetMissionIntel deserialize() {

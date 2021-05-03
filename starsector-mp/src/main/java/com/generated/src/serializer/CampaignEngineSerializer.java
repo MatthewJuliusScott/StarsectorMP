@@ -67,6 +67,7 @@ public class CampaignEngineSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getRespawnCoordinates().writeObject();
     }
 
     public com.fs.starfarer.campaign.CampaignEngine deserialize() {

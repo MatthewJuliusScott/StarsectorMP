@@ -76,6 +76,15 @@ public class PlanetConditionMarketSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getDarkColorForFactionOrPlanet().writeObject();
+        return obj.getImmigrationModifiers().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getLocationInHyperspace().writeObject();
+        return obj.getOnOrAt().writeObject();
+        return obj.getSimDisplayLocation().writeObject();
+        return obj.getSuppressedConditions().writeObject();
+        return obj.getTextColorForFactionOrPlanet().writeObject();
+        return obj.getTransientImmigrationModifiers().writeObject();
     }
 
     public com.fs.starfarer.campaign.econ.PlanetConditionMarket deserialize() {

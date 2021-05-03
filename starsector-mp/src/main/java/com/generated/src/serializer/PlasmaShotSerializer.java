@@ -32,11 +32,6 @@ public class PlasmaShotSerializer {
             } catch (SerializerNotFoundException _x) {
             }
             out.writeFloat(obj.getCollisionRadius());
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.combat.E.F.class));
-                out.write(serializer.serialize(obj.getDamage()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeFloat(obj.getFacing());
             out.writeFloat(obj.getFadeTime());
             out.writeBoolean(obj.isFromMissile());
@@ -52,6 +47,11 @@ public class PlasmaShotSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getSpawnLocation().writeObject();
+        return obj.getTailEnd().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.PlasmaShot deserialize() {

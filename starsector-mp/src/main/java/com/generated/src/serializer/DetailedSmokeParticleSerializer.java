@@ -35,6 +35,7 @@ public class DetailedSmokeParticleSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getColor().writeObject();
     }
 
     public com.fs.starfarer.renderers.fx.DetailedSmokeParticle deserialize() {

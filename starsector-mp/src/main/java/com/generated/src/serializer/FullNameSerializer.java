@@ -27,6 +27,7 @@ public class FullNameSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getFullName().writeObject();
     }
 
     public com.fs.starfarer.api.characters.FullName deserialize() {

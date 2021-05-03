@@ -33,6 +33,7 @@ public class ColorShifterSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCurr().writeObject();
     }
 
     public com.fs.starfarer.util.ColorShifter deserialize() {

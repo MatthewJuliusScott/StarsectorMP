@@ -27,6 +27,7 @@ public class CombatEntityPluginWithParticlesSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
     }
 
     public com.fs.starfarer.api.impl.combat.CombatEntityPluginWithParticles deserialize() {

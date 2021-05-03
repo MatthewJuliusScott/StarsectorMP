@@ -85,6 +85,11 @@ public class CampaignTerrainSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCustomEntityType().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getLocationInHyperspace().writeObject();
+        return obj.getType().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.campaign.CampaignTerrain deserialize() {

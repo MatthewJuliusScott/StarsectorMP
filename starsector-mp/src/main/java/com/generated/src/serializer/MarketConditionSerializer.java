@@ -26,6 +26,8 @@ public class MarketConditionSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getId().writeObject();
+        return obj.getIdForPluginModifications().writeObject();
     }
 
     public com.fs.starfarer.campaign.econ.MarketCondition deserialize() {

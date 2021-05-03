@@ -35,6 +35,10 @@ public class CargoItemStackSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCommodityId().writeObject();
+        return obj.getDisplayName().writeObject();
+        return obj.getSoundId().writeObject();
+        return obj.getSoundIdDrop().writeObject();
     }
 
     public com.fs.starfarer.campaign.ui.trade.CargoItemStack deserialize() {

@@ -40,6 +40,7 @@ public class InteractionDialogImageVisualSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getSpriteName().writeObject();
     }
 
     public com.fs.starfarer.api.InteractionDialogImageVisual deserialize() {

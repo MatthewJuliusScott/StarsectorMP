@@ -49,6 +49,11 @@ public class PirateBaseIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getCommMessageSound().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getSortTier().writeObject();
+        return obj.getTier().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseIntel deserialize() {

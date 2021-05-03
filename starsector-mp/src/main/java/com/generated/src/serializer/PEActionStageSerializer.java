@@ -26,6 +26,7 @@ public class PEActionStageSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getStatus().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.punitive.PEActionStage deserialize() {

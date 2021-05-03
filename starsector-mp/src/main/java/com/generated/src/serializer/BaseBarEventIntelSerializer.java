@@ -43,6 +43,14 @@ public class BaseBarEventIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getBarEventId().writeObject();
+        return obj.getCommMessageSound().writeObject();
+        return obj.getIcon().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getSmallDescriptionTitle().writeObject();
+        return obj.getSortString().writeObject();
+        return obj.getSortTier().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.bar.events.BaseBarEventIntel deserialize() {

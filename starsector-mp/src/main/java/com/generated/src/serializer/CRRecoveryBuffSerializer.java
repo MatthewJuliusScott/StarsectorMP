@@ -26,6 +26,7 @@ public class CRRecoveryBuffSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.terrain.CRRecoveryBuff deserialize() {

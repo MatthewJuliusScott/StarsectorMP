@@ -75,6 +75,7 @@ public class DamagingExplosionSpecSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCollisionClassIfByFighter().writeObject();
     }
 
     public com.fs.starfarer.api.loading.DamagingExplosionSpec deserialize() {

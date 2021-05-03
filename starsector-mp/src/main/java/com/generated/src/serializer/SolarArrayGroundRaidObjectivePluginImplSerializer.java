@@ -50,6 +50,10 @@ public class SolarArrayGroundRaidObjectivePluginImplSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCommodityIdForDeficitIcons().writeObject();
+        return obj.getDangerLevel().writeObject();
+        return obj.getDisruptedAlreadyString().writeObject();
+        return obj.getSourceString().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.graid.SolarArrayGroundRaidObjectivePluginImpl deserialize() {

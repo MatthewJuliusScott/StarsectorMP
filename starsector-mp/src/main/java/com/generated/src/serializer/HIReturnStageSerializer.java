@@ -26,6 +26,7 @@ public class HIReturnStageSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getStatus().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.inspection.HIReturnStage deserialize() {

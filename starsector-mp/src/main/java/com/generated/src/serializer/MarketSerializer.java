@@ -61,15 +61,6 @@ public class MarketSerializer {
             out.writeBoolean(obj.isForceNoConvertOnSave());
             out.writeBoolean(obj.isFreePort());
             out.writeUTF(obj.getId());
-            com.fs.starfarer.api.campaign.econ.MarketImmigrationModifier[] immigrationModifiersArray = obj.getImmigrationModifiers().toArray(new com.fs.starfarer.api.campaign.econ.MarketImmigrationModifier[ 0 ] );
-            out.writeInt(immigrationModifiersArray.length);
-            for (int i = 0; (i<immigrationModifiersArray.length); i ++) {
-                try {
-                    ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.api.campaign.econ.MarketImmigrationModifier.class));
-                    out.write(serializer.serialize(immigrationModifiersArray[i]));
-                } catch (SerializerNotFoundException _x) {
-                }
-            }
             out.writeFloat(obj.getIncentiveCredits());
             try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.api.impl.campaign.population.PopulationComposition.class));
@@ -112,24 +103,10 @@ public class MarketSerializer {
                 } catch (SerializerNotFoundException _x) {
                 }
             }
-            java.lang.String[] suppressedConditionsArray = obj.getSuppressedConditions().toArray(new java.lang.String[ 0 ] );
-            out.writeInt(suppressedConditionsArray.length);
-            for (int i = 0; (i<suppressedConditionsArray.length); i ++) {
-                out.writeUTF(suppressedConditionsArray[i]);
-            }
-            java.lang.String[] tagsArray = obj.getTags().toArray(new java.lang.String[ 0 ] );
+            String[] tagsArray = obj.getTags().toArray(new String[ 0 ] );
             out.writeInt(tagsArray.length);
             for (int i = 0; (i<tagsArray.length); i ++) {
                 out.writeUTF(tagsArray[i]);
-            }
-            com.fs.starfarer.api.campaign.econ.MarketImmigrationModifier[] transientImmigrationModifiersArray = obj.getTransientImmigrationModifiers().toArray(new com.fs.starfarer.api.campaign.econ.MarketImmigrationModifier[ 0 ] );
-            out.writeInt(transientImmigrationModifiersArray.length);
-            for (int i = 0; (i<transientImmigrationModifiersArray.length); i ++) {
-                try {
-                    ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.api.campaign.econ.MarketImmigrationModifier.class));
-                    out.write(serializer.serialize(transientImmigrationModifiersArray[i]));
-                } catch (SerializerNotFoundException _x) {
-                }
             }
             out.writeBoolean(obj.isUseStockpilesForShortages());
             out.flush();
@@ -140,6 +117,13 @@ public class MarketSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getImmigrationModifiers().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getLocationInHyperspace().writeObject();
+        return obj.getOnOrAt().writeObject();
+        return obj.getSimDisplayLocation().writeObject();
+        return obj.getSuppressedConditions().writeObject();
+        return obj.getTransientImmigrationModifiers().writeObject();
     }
 
     public com.fs.starfarer.campaign.econ.Market deserialize() {

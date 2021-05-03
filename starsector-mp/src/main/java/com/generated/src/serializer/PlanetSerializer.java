@@ -61,6 +61,10 @@ public class PlanetSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getType().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.terrain.Planet deserialize() {

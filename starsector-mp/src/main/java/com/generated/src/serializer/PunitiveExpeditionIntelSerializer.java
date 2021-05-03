@@ -44,6 +44,12 @@ public class PunitiveExpeditionIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getGoal().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getRandom().writeObject();
+        return obj.getRouteSourceId().writeObject();
+        return obj.getSortString().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.punitive.PunitiveExpeditionIntel deserialize() {

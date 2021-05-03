@@ -26,6 +26,8 @@ public class FreeMarketSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getHighlightColors().writeObject();
+        return obj.getHighlights().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.econ.FreeMarket deserialize() {

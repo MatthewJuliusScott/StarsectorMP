@@ -82,6 +82,20 @@ public class ProcurementMissionSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getBlurbText().writeObject();
+        return obj.getCommMessageSound().writeObject();
+        return obj.getGetWithinCommsRangeText().writeObject();
+        return obj.getGetWithinCommsRangeTextShort().writeObject();
+        return obj.getGiverGender().writeObject();
+        return obj.getNextStepText().writeObject();
+        return obj.getPostfixForState().writeObject();
+        return obj.getReason().writeObject();
+        return obj.getRewardLimitFaction().writeObject();
+        return obj.getRewardLimitPerson().writeObject();
+        return obj.getSortTier().writeObject();
+        return obj.getStageDescriptionText().writeObject();
+        return obj.getTriggerPrefix().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.missions.ProcurementMission deserialize() {

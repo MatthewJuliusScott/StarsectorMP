@@ -46,6 +46,12 @@ public class BattlefieldWaypointSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getDisplayName().writeObject();
+        return obj.getDisplayNameForTask().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getTargetSize().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.combat.entities.BattlefieldWaypoint deserialize() {

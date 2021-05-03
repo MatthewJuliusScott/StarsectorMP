@@ -38,6 +38,8 @@ public class CoreAutofitPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getQuickActionText().writeObject();
+        return obj.getQuickActionTooltip().writeObject();
     }
 
     public com.fs.starfarer.api.plugins.impl.CoreAutofitPlugin deserialize() {

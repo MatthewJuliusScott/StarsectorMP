@@ -61,6 +61,7 @@ public class FleetEncounterContextSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getLastEngagementOutcome().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.FleetEncounterContext deserialize() {

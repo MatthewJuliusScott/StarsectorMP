@@ -55,6 +55,7 @@ public class FighterWingSpecSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getAutofitCategory().writeObject();
     }
 
     public com.fs.starfarer.loading.specs.FighterWingSpec deserialize() {

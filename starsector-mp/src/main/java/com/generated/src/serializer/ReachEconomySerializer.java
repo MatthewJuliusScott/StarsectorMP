@@ -48,6 +48,7 @@ public class ReachEconomySerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getIdToMarket().writeObject();
     }
 
     public com.fs.starfarer.campaign.econ.reach.ReachEconomy deserialize() {

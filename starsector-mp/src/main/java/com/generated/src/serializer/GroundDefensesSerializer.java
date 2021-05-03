@@ -37,6 +37,13 @@ public class GroundDefensesSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBuildCostOverride().writeObject();
+        return obj.getCanNotShutDownReason().writeObject();
+        return obj.getDisruptedKey().writeObject();
+        return obj.getId().writeObject();
+        return obj.getImproveMenuText().writeObject();
+        return obj.getImproveSoundId().writeObject();
+        return obj.getUnavailableReason().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.econ.impl.GroundDefenses deserialize() {

@@ -43,6 +43,14 @@ public class FactionHostilityIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getCommMessageSound().writeObject();
+        return obj.getId().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getName().writeObject();
+        return obj.getSmallDescriptionTitle().writeObject();
+        return obj.getSortString().writeObject();
+        return obj.getSortTier().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.FactionHostilityIntel deserialize() {

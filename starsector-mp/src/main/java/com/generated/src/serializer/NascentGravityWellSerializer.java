@@ -89,6 +89,11 @@ public class NascentGravityWellSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getCustomEntityType().writeObject();
+        return obj.getLocation().writeObject();
+        return obj.getLocationInHyperspace().writeObject();
+        return obj.getVelocity().writeObject();
     }
 
     public com.fs.starfarer.campaign.NascentGravityWell deserialize() {

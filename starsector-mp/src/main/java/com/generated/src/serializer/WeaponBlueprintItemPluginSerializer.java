@@ -26,6 +26,7 @@ public class WeaponBlueprintItemPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getDesignType().writeObject();
     }
 
     public com.fs.starfarer.api.campaign.impl.items.WeaponBlueprintItemPlugin deserialize() {

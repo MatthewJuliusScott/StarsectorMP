@@ -5,6 +5,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -42,49 +43,91 @@ import com.sun.codemodel.JStatement;
 import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JVar;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class _ASerializerCodeGeneration.
  */
 public class _ASerializerCodeGeneration {
 
+	/** The serialized classes. */
 	private static Set<String> serializedClasses = new HashSet<String>();
 
+	/** The class blacklist. */
 	public static Set<String> classBlacklist = new HashSet<String>();
 
+	/** The class serializer map. */
 	private static Map<JClass, JDefinedClass> classSerializerMap = new HashMap<JClass, JDefinedClass>();
 
+	/** The classes to serialize. */
 	private static ConcurrentMap<Class, Class> classesToSerialize = new ConcurrentHashMap<Class, Class>();
 
+	/** The reserved words. */
 	public static Set<String> reservedWords = new HashSet<String>(Arrays.asList("abstract", "continue", "for", "new",
 			"switch", "assert", "default", "goto", "package", "synchronized", "boolean", "do", "if", "private", "this",
 			"break", "double", "implements", "protected", "throw", "byte", "else", "import", "public", "throws", "case",
 			"enum", "instanceof", "return", "transient", "catch", "extends", "int", "short", "try", "char", "final",
 			"interface", "static", "void", "class", "finally", "long", "strictfp", "volatile", "const", "float",
-			"native", "super", "while"));
+			"native", "super", "while", "null", "String"));
 
+	/**
+	 * Generate serializer.
+	 *
+	 * @param _package      the package
+	 * @param specificClass the specific class
+	 * @param subTypeOf     the sub type of
+	 */
 	private static void generateSerializer(String _package, Class specificClass, Class subTypeOf) {
+		
+		String fileNatives = OperatingSystem.getOSforLWJGLNatives();
+	    System.setProperty("org.lwjgl.librarypath", System.getProperty("user.dir") + File.separator + "lib" + File.separator + "native" + File.separator + fileNatives);
+		
 		try {
 			Reflections reflections = new Reflections(_package, new SubTypesScanner(false));
 			Set<Class<? extends Object>> types = reflections.getSubTypesOf(subTypeOf);
 
-			for (Class clazz : types) {
-				if (clazz.getName().contains("$") || classBlacklist.contains(clazz.getSimpleName())
-						|| reservedWords.contains(clazz.getSimpleName())) {
+			classFor: for (Class clazz : types) {
+				if (classInvalid(clazz)) {
 					continue;
 				}
+				String[] packageFolders = clazz.getCanonicalName().split(".");
+				for (String packageFolder : packageFolders) {
+					if (packageInvalid(clazz, packageFolder)) {
+						continue classFor;
+					}
+				}
+
+				String className = clazz.getName();
+				if (className.lastIndexOf('.') > -1) {
+					className = className.substring(className.lastIndexOf('.') + 1);
+				}
+
+				System.out.println(
+						"Plugin output: Class name " + clazz.getName() + ", creating " + className + "Serializer");
+
+				// build code model
 				JCodeModel codeModel = new JCodeModel();
 				JPackage jPackage = codeModel._package("com.generated.src.serializer");
+				JDefinedClass jdefinedClass = jPackage._class(className + "Serializer");
+
 				int count = 0;
+				boolean useConstructor = false;
+				Object bean = null;
 				try {
-					String className = clazz.getName();
-					if (className.lastIndexOf('.') > -1) {
-						className = className.substring(className.lastIndexOf('.') + 1);
+					// use default constructor if it exists
+					try {
+						bean = clazz.newInstance();
+					} catch (java.lang.ExceptionInInitializerError | java.lang.InstantiationException | java.lang.NoClassDefFoundError | java.lang.NullPointerException e1) {
+						// if that fails try Objenesis new Instance
+						try {
+							Objenesis objenesis = new ObjenesisStd();
+							bean = objenesis.newInstance(clazz);
+						} catch (java.lang.InstantiationError | java.lang.NoClassDefFoundError | java.lang.ExceptionInInitializerError e2) {
+							// this object can't be serialized, sorry
+							// throw e2;
+							continue classFor;
+						}
+
 					}
-					System.out.println(
-							"Plugin output: Class name " + clazz.getName() + ", creating " + className + "Serializer");
-					JDefinedClass jdefinedClass = jPackage._class(className + "Serializer");
-					Objenesis objenesis = new ObjenesisStd();
-					Object bean = objenesis.newInstance(clazz);
 					PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(clazz, Object.class)
 							.getPropertyDescriptors();
 
@@ -104,8 +147,6 @@ public class _ASerializerCodeGeneration {
 					JMethod serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
 					serializeMethod._throws(jIOException);
 					JVar jParam = serializeMethod.param(clazz, "obj");
-					// TODO add each of the values as bytes including recursively calling serialize
-					// and collections to fixed length arrays
 
 					JVar jBos = serializeMethod.body().decl(jByteArrayOutputStream, "bos",
 							JExpr._new(jByteArrayOutputStream));
@@ -125,10 +166,16 @@ public class _ASerializerCodeGeneration {
 
 					// add the deserialize method
 					JMethod deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
-					JVar jObj = deserializeMethod.body().decl(jObjenesis, "objenesis", JExpr._new(jObjenesisStd));
-					JInvocation newInstanceExpression = jObj.invoke("newInstance");
-					newInstanceExpression.arg(jClazz.dotclass());
-					JVar jClazzObj = deserializeMethod.body().decl(jClazz, "obj", newInstanceExpression);
+
+					JVar jClazzObj = null;
+					if (useConstructor) {
+						// use default constructor if it exists
+					} else {
+						JVar jObj = deserializeMethod.body().decl(jObjenesis, "objenesis", JExpr._new(jObjenesisStd));
+						JInvocation newInstanceExpression = jObj.invoke("newInstance");
+						newInstanceExpression.arg(jClazz.dotclass());
+						jClazzObj = deserializeMethod.body().decl(jClazz, "obj", newInstanceExpression);
+					}
 					// set all the values from bytes before return
 
 					for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
@@ -154,6 +201,11 @@ public class _ASerializerCodeGeneration {
 											tryBlock.body(), jParam.invoke(readMethod.getName()),
 											jSerializerNotFoundException, jMessageSerializer, jISerializer);
 									count++;
+								} else if (Serializable.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
+									// already implements serializable
+									serializeMethod.body()
+											._return(jParam.invoke(readMethod.getName()).invoke("writeObject"));
+
 								} else if (readMethod != null && !propertyDescriptor.getPropertyType().isPrimitive()
 										&& Collection.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
 									// is a collection, convert to a fixed length array and write length, then bytes
@@ -178,11 +230,12 @@ public class _ASerializerCodeGeneration {
 										write(parameterArrayClass, codeModel, jOut, jParam, tryBlock.body(), array,
 												jSerializerNotFoundException, jMessageSerializer, jISerializer);
 										count++;
-									} catch (Exception e3) {
+									} catch (Exception e4) {
+										// do nothing
 									}
 								}
 							}
-						} catch (Exception | ExceptionInInitializerError | NoClassDefFoundError e2) {
+						} catch (Exception e3) {
 							// do nothing
 						}
 
@@ -196,39 +249,44 @@ public class _ASerializerCodeGeneration {
 
 						// deserialize
 						deserializeMethod.body()._return(jClazzObj);
-						classSerializerMap.put(jClazz, jdefinedClass);
-						serializedClasses.add(clazz.getCanonicalName());
 						codeModel.build(new File("src/main/java/"));
-					} else {
-						// there was nothing generated, create a dummy serializer for a NOP
-						JCodeModel dummyCodeModel = new JCodeModel();
-						jPackage = dummyCodeModel._package("com.generated.src.serializer.dummy");
-						jdefinedClass = jPackage._class(className + "DummySerializer");
-						serializeMethod = jdefinedClass.method(JMod.PUBLIC, byte[].class, "serialize");
-						serializeMethod._throws(jIOException);
-						jParam = serializeMethod.param(clazz, "obj");
-						serializeMethod.body().directStatement("return new byte[0];");
-
-						deserializeMethod = jdefinedClass.method(JMod.PUBLIC, clazz, "deserialize");
-						deserializeMethod.body().directStatement("return null;");
-						classSerializerMap.put(jClazz, jdefinedClass);
 						serializedClasses.add(clazz.getCanonicalName());
-						dummyCodeModel.build(new File("src/main/java/"));
+						if (useConstructor) {
+
+						} else {
+							classSerializerMap.put(jClazz, jdefinedClass);
+						}
 					}
-				} catch (IllegalArgumentException | IntrospectionException | NoClassDefFoundError | SecurityException
-						| ExceptionInInitializerError | InstantiationError | JClassAlreadyExistsException
-						| java.lang.UnsatisfiedLinkError e1) {
-					e1.printStackTrace();
+				} catch (Exception e2) {
+					e2.printStackTrace();
 					continue;
 				}
 			}
-		} catch (
-
-		Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Package invalid.
+	 *
+	 * @param clazz         the clazz
+	 * @param packageFolder the package folder
+	 * @return true, if successful
+	 */
+	private static boolean packageInvalid(Class clazz, String packageFolder) {
+		return packageFolder.contains("$") || classBlacklist.contains(packageFolder)
+				|| reservedWords.contains(packageFolder)
+				|| clazz.getSimpleName().substring(0, 1).toLowerCase().equals(clazz.getSimpleName().substring(0, 1));
+	}
+
+	/**
+	 * Generate serializer manager.
+	 *
+	 * @throws IOException                  Signals that an I/O exception has
+	 *                                      occurred.
+	 * @throws JClassAlreadyExistsException the j class already exists exception
+	 */
 	private static void generateSerializerManager() throws IOException, JClassAlreadyExistsException {
 		JCodeModel codeModel = new JCodeModel();
 		JPackage jPackage = codeModel._package("com.generated.src");
@@ -261,16 +319,54 @@ public class _ASerializerCodeGeneration {
 	 * @throws Exception the exception
 	 */
 	public static void main(String[] args) throws Exception {
+		classBlacklist.add("Object");
 		classBlacklist.add("A");
 		classBlacklist.add("B");
 		classBlacklist.add("C");
 		classBlacklist.add("D");
+		classBlacklist.add("D");
+		classBlacklist.add("E");
+		classBlacklist.add("F");
+		classBlacklist.add("G");
+		classBlacklist.add("H");
+		classBlacklist.add("I");
+		classBlacklist.add("J");
+		classBlacklist.add("K");
+		classBlacklist.add("L");
+		classBlacklist.add("M");
+		classBlacklist.add("N");
+		classBlacklist.add("O");
+		classBlacklist.add("P");
+		classBlacklist.add("Q");
+		classBlacklist.add("R");
+		classBlacklist.add("S");
+		classBlacklist.add("T");
+		classBlacklist.add("U");
+		classBlacklist.add("V");
+		classBlacklist.add("W");
+		classBlacklist.add("X");
+		classBlacklist.add("Y");
+		classBlacklist.add("Z");
 		classBlacklist.add("o0OO");
 		classBlacklist.add("O0OO");
 		classBlacklist.add("oOOO");
 		classBlacklist.add("O00O");
 		classBlacklist.add(
 				"o00OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+		classBlacklist.add(
+				"O00OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+		classBlacklist.add(
+				"O0oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+		classBlacklist.add(
+				"oOooOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+		classBlacklist.add("OOOo");
+		classBlacklist.add("ooOO");
+		classBlacklist.add("OoOO");
+		classBlacklist.add("OOoO");
+		classBlacklist.add("o0Oo");
+		classBlacklist.add("O0O0");
+		classBlacklist.add("o0oo");
+		classBlacklist.add("oOoO");
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer", null, DoNotObfuscate.class);
 		_ASerializerCodeGeneration.generateSerializer("com.fs.starfarer.api", null, Object.class);
 		Set<Map.Entry<Class, Class>> entrySet = classesToSerialize.entrySet();
@@ -278,7 +374,11 @@ public class _ASerializerCodeGeneration {
 		while (iterator.hasNext()) {
 			Class clazz = iterator.next().getKey();
 			iterator.remove();
-			_ASerializerCodeGeneration.generateSerializer(clazz.getPackage().getName(), clazz, Object.class);
+			try {
+				_ASerializerCodeGeneration.generateSerializer(clazz.getPackage().getName(), clazz, Object.class);
+			} catch (NoClassDefFoundError | ExceptionInInitializerError | InstantiationError
+					| java.lang.UnsatisfiedLinkError | Exception e) {
+			}
 		}
 		_ASerializerCodeGeneration.generateSerializerManager();
 		System.out.println("DONE");
@@ -292,8 +392,7 @@ public class _ASerializerCodeGeneration {
 	 * @param jOut                         the j out
 	 * @param jParam                       the j param
 	 * @param jBlock                       the j block
-	 * @param readMethod                   the read method
-	 * @param writeMethod                  the write method
+	 * @param expression                   the expression
 	 * @param jSerializerNotFoundException the j serializer not found exception
 	 * @param jMessageSerializer           the j message serializer
 	 * @param jISerializer                 the j I serializer
@@ -301,9 +400,21 @@ public class _ASerializerCodeGeneration {
 	private static void write(Class clazz, JCodeModel codeModel, JVar jOut, JVar jParam, JBlock jBlock,
 			JExpression expression, JClass jSerializerNotFoundException, JClass jMessageSerializer,
 			JClass jISerializer) {
+
 		if (clazz == null) {
 			return;
-		} else if (clazz.equals(byte.class)) {
+		}
+
+		// no bad packages
+		String[] packageFolders = clazz.getCanonicalName().split(".");
+		for (String packageFolder : packageFolders) {
+			if (packageFolder.contains("$") || classBlacklist.contains(packageFolder)
+					|| reservedWords.contains(packageFolder)) {
+				return;
+			}
+		}
+
+		if (clazz.equals(byte.class)) {
 			JInvocation write = jOut.invoke("writeByte");
 			write.arg(expression);
 			jBlock.add(write);
@@ -360,12 +471,9 @@ public class _ASerializerCodeGeneration {
 			// TODO ?else detect infinite loop for A references B, B references A
 		} else if (clazz.equals(Object.class)) {
 			return;
-		} else if (clazz.getName().contains("$") || classBlacklist.contains(clazz.getSimpleName())
-				|| reservedWords.contains(clazz.getSimpleName())) {
+		} else if (classInvalid(clazz)) {
 			// no inner classes, blacklisted classes, or reserved word classes (excluding
 			// primitives already handled)
-			return;
-		} else if (clazz.getName() == null) {
 			return;
 		} else {
 			// call the object's serializer if it exists
@@ -387,5 +495,17 @@ public class _ASerializerCodeGeneration {
 			}
 
 		}
+	}
+
+	/**
+	 * Class invalid.
+	 *
+	 * @param clazz the clazz
+	 * @return true, if successful
+	 */
+	private static boolean classInvalid(Class clazz) {
+		return clazz.getName() == null || clazz.getName().contains("$")
+				|| classBlacklist.contains(clazz.getSimpleName()) || reservedWords.contains(clazz.getSimpleName())
+				|| clazz.getSimpleName().substring(0, 1).toLowerCase().equals(clazz.getSimpleName().substring(0, 1));
 	}
 }

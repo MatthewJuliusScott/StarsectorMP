@@ -27,6 +27,7 @@ public class PirateRaidAssembleStageSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getStatus().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.raid.PirateRaidAssembleStage deserialize() {

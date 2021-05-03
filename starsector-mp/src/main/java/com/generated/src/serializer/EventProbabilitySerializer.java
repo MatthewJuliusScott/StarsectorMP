@@ -34,6 +34,7 @@ public class EventProbabilitySerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getEventType().writeObject();
     }
 
     public com.fs.starfarer.campaign.events.EventProbability deserialize() {

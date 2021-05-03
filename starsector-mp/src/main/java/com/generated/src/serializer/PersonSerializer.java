@@ -61,6 +61,10 @@ public class PersonSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getPost().writeObject();
+        return obj.getPostArticle().writeObject();
+        return obj.getRank().writeObject();
+        return obj.getRankArticle().writeObject();
     }
 
     public com.fs.starfarer.rpg.Person deserialize() {

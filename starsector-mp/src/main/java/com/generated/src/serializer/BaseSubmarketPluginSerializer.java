@@ -28,6 +28,14 @@ public class BaseSubmarketPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBuyVerb().writeObject();
+        return obj.getName().writeObject();
+        return obj.getPlayerEconomyImpactMode().writeObject();
+        return obj.getSellVerb().writeObject();
+        return obj.getTariffTextOverride().writeObject();
+        return obj.getTariffValueOverride().writeObject();
+        return obj.getTotalTextOverride().writeObject();
+        return obj.getTotalValueOverride().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.submarkets.BaseSubmarketPlugin deserialize() {

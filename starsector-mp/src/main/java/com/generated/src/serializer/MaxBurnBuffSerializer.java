@@ -27,6 +27,7 @@ public class MaxBurnBuffSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.terrain.MaxBurnBuff deserialize() {

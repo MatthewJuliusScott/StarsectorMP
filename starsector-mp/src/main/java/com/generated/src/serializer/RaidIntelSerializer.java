@@ -44,6 +44,10 @@ public class RaidIntelSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getRouteSourceId().writeObject();
+        return obj.getSortString().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.raid.RaidIntel deserialize() {

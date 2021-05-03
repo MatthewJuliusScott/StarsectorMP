@@ -98,6 +98,7 @@ public class StarSystemSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getLocation().writeObject();
     }
 
     public com.fs.starfarer.campaign.StarSystem deserialize() {

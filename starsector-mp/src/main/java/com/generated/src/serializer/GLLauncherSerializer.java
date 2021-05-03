@@ -26,6 +26,8 @@ public class GLLauncherSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getID().writeObject();
+        return obj.getNextState().writeObject();
     }
 
     public com.fs.starfarer.launcher.opengl.GLLauncher deserialize() {

@@ -26,6 +26,10 @@ public class CommDirectoryEntrySerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getId().writeObject();
+        return obj.getSpriteName().writeObject();
+        return obj.getText().writeObject();
+        return obj.getTitle().writeObject();
     }
 
     public com.fs.starfarer.campaign.CommDirectoryEntry deserialize() {

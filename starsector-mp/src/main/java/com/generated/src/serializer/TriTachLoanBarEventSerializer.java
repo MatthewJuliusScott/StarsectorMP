@@ -28,6 +28,7 @@ public class TriTachLoanBarEventSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBarEventId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.bar.events.TriTachLoanBarEvent deserialize() {

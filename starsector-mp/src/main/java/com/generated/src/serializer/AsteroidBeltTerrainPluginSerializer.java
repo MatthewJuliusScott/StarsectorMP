@@ -26,6 +26,13 @@ public class AsteroidBeltTerrainPluginSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getActiveLayers().writeObject();
+        return obj.getEffectCategory().writeObject();
+        return obj.getIconSpriteName().writeObject();
+        return obj.getModId().writeObject();
+        return obj.getNameAOrAn().writeObject();
+        return obj.getNameForTooltip().writeObject();
+        return obj.getTerrainId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.terrain.AsteroidBeltTerrainPlugin deserialize() {

@@ -30,11 +30,6 @@ public class CampaignUIPersistentDataSerializer {
             out.writeFloat(obj.getCampaignMapZoom());
             out.writeFloat(obj.getCampaignZoom());
             out.writeInt(obj.getCargoSubmarketIndex());
-            String[] checkedRefitTagsArray = obj.getCheckedRefitTags().toArray(new String[ 0 ] );
-            out.writeInt(checkedRefitTagsArray.length);
-            for (int i = 0; (i<checkedRefitTagsArray.length); i ++) {
-                out.writeUTF(checkedRefitTagsArray[i]);
-            }
             out.writeInt(obj.getCommodityGraphMode());
             try {
                 ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.api.campaign.SectorEntityToken.class));
@@ -66,6 +61,9 @@ public class CampaignUIPersistentDataSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCampaignMapCoordinates().writeObject();
+        return obj.getCheckedRefitTags().writeObject();
+        return obj.getHyperMapCoordinates().writeObject();
     }
 
     public com.fs.starfarer.campaign.CampaignUIPersistentData deserialize() {

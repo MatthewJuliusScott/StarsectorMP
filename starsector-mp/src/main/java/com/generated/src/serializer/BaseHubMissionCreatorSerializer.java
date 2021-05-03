@@ -28,6 +28,8 @@ public class BaseHubMissionCreatorSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getGenRandom().writeObject();
+        return obj.getSpecId().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.missions.hub.BaseHubMissionCreator deserialize() {

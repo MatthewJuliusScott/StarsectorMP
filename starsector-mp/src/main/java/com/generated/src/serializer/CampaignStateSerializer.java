@@ -4,9 +4,6 @@ package com.generated.src.serializer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import com.dasmatarix.multiplayer.ISerializer;
-import com.dasmatarix.multiplayer.MessageSerializer;
-import com.dasmatarix.multiplayer.exception.SerializerNotFoundException;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
@@ -20,11 +17,6 @@ public class CampaignStateSerializer {
         ObjectOutputStream out = null;
         try {
             out = new ObjectOutputStream(bos);
-            try {
-                ISerializer serializer = MessageSerializer.getInstance().getSerializer((com.fs.starfarer.ui.newui.V.class));
-                out.write(serializer.serialize(obj.getEncounterDialog()));
-            } catch (SerializerNotFoundException _x) {
-            }
             out.writeBoolean(obj.isFollowingDirectCommand());
             out.writeBoolean(obj.isHideUI());
             out.writeBoolean(obj.isLauncherMode());
@@ -36,6 +28,9 @@ public class CampaignStateSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getID().writeObject();
+        return obj.getCurrentCoreTab().writeObject();
+        return obj.getNextState().writeObject();
     }
 
     public com.fs.starfarer.campaign.CampaignState deserialize() {

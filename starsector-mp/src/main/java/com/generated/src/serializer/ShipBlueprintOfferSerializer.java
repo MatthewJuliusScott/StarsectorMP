@@ -44,6 +44,12 @@ public class ShipBlueprintOfferSerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getBackgroundGlowColor().writeObject();
+        return obj.getCommMessageSound().writeObject();
+        return obj.getData().writeObject();
+        return obj.getImportantIcon().writeObject();
+        return obj.getSortString().writeObject();
+        return obj.getSortTier().writeObject();
     }
 
     public com.fs.starfarer.api.impl.campaign.intel.bar.events.historian.ShipBlueprintOffer deserialize() {

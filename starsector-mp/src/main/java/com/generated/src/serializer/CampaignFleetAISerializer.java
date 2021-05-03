@@ -33,6 +33,7 @@ public class CampaignFleetAISerializer {
             } catch (IOException _x) {
             }
         }
+        return obj.getCurrentAssignmentType().writeObject();
     }
 
     public com.fs.starfarer.campaign.ai.CampaignFleetAI deserialize() {
